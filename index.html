@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jogo da Velha interativo desenvolvido com Arquitetura MVC, HTML5 Semântico, CSS3 Moderno e JavaScript Puro (ES2020), em total conformidade com WCAG 2.1 AA.">
+  <title>Jogo da Velha — Requisitos e Solução MVC</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="page-wrapper">
+    <!-- Cabeçalho Principal -->
+    <header class="main-header">
+      <div class="header-badges">
+        <span class="badge badge-primary">Engenharia de Software</span>
+        <span class="badge badge-secondary">Levantamento de Requisitos</span>
+        <span class="badge badge-accent">Arquitetura MVC</span>
+      </div>
+      <h1 class="main-title">Jogo da Velha — Solução MVC</h1>
+      <p class="subtitle">
+        Aplicação 100% baunilha (HTML5, CSS3 e JS ES2020) sem dependências externas, projetada com separação rigorosa de responsabilidades e acessibilidade WCAG 2.1 AA.
+      </p>
+    </header>
+
+    <!-- Área Central da Aplicação -->
+    <main class="game-container" id="gameApp">
+      <!-- Painel de Placar (RF07) -->
+      <section class="scoreboard" aria-label="Placar da sessão">
+        <div class="score-card score-card-x" id="cardScoreX">
+          <span class="score-label">VITÓRIAS X</span>
+          <span class="score-value" id="scoreX" aria-live="polite">0</span>
+        </div>
+        <div class="score-card score-card-draw" id="cardScoreDraw">
+          <span class="score-label">EMPATES</span>
+          <span class="score-value" id="scoreDraw" aria-live="polite">0</span>
+        </div>
+        <div class="score-card score-card-o" id="cardScoreO">
+          <span class="score-label">VITÓRIAS O</span>
+          <span class="score-value" id="scoreO" aria-live="polite">0</span>
+        </div>
+      </section>
+
+      <!-- Banner de Status de Turno / Fim de Jogo (RF03, RF05, RNF05) -->
+      <section class="status-section" aria-label="Status do jogo">
+        <div 
+          id="gameStatus" 
+          class="status-banner status-x" 
+          role="status" 
+          aria-live="polite"
+        >
+          Vez do Jogador X
+        </div>
+      </section>
+
+      <!-- Tabuleiro 3x3 (RF01, RF02, RF04, RNF05) -->
+      <section class="board-section" aria-label="Área do tabuleiro">
+        <div 
+          class="board-grid" 
+          id="boardGrid" 
+          role="grid" 
+          aria-label="Tabuleiro do Jogo da Velha com 3 linhas e 3 colunas"
+        >
+          <!-- 9 Casas interativas via botões semânticos -->
+          <button type="button" class="cell" data-index="0" data-row="1" data-col="1" aria-label="Linha 1, Coluna 1, vazia"></button>
+          <button type="button" class="cell" data-index="1" data-row="1" data-col="2" aria-label="Linha 1, Coluna 2, vazia"></button>
+          <button type="button" class="cell" data-index="2" data-row="1" data-col="3" aria-label="Linha 1, Coluna 3, vazia"></button>
+
+          <button type="button" class="cell" data-index="3" data-row="2" data-col="1" aria-label="Linha 2, Coluna 1, vazia"></button>
+          <button type="button" class="cell" data-index="4" data-row="2" data-col="2" aria-label="Linha 2, Coluna 2, vazia"></button>
+          <button type="button" class="cell" data-index="5" data-row="2" data-col="3" aria-label="Linha 2, Coluna 3, vazia"></button>
+
+          <button type="button" class="cell" data-index="6" data-row="3" data-col="1" aria-label="Linha 3, Coluna 1, vazia"></button>
+          <button type="button" class="cell" data-index="7" data-row="3" data-col="2" aria-label="Linha 3, Coluna 2, vazia"></button>
+          <button type="button" class="cell" data-index="8" data-row="3" data-col="3" aria-label="Linha 3, Coluna 3, vazia"></button>
+        </div>
+      </section>
+
+      <!-- Controles de Ação (RF06, RF08) -->
+      <section class="actions-section" aria-label="Controles da partida">
+        <button type="button" id="btnNewGame" class="btn btn-primary" aria-label="Iniciar nova partida, mantendo o placar">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          Nova Partida
+        </button>
+
+        <button type="button" id="btnResetScores" class="btn btn-outline-danger" aria-label="Zerar todo o histórico de vitórias e empates com confirmação">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Zerar Placar
+        </button>
+      </section>
+    </main>
+
+    <!-- Modal de Confirmação para Zerar Placar (RF08, RN07) -->
+    <dialog id="confirmDialog" class="confirm-dialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="dialog-content">
+        <div class="dialog-icon" aria-hidden="true">⚠️</div>
+        <h2 id="dialogTitle" class="dialog-title">Zerar Histórico do Placar?</h2>
+        <p id="dialogDesc" class="dialog-description">
+          Esta ação apagará todas as vitórias do Jogador X, vitórias do Jogador O e empates acumulados nesta sessão. O jogo será reiniciado.
+        </p>
+        <div class="dialog-actions">
+          <button type="button" id="btnCancelReset" class="btn btn-secondary">Cancelar</button>
+          <button type="button" id="btnConfirmReset" class="btn btn-danger">Sim, Zerar Placar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Rodapé Pedagógico com Rastreabilidade de Engenharia de Software -->
+    <footer class="pedagogical-footer">
+      <div class="footer-card">
+        <h3>Orientação Pedagógica & Conformidade de Engenharia</h3>
+        <p><strong>Padrão Arquitetural:</strong> Modelo-Visão-Controlador (GameModel, GameView, GameController).</p>
+        <p><strong>Acessibilidade (a11y):</strong> Foco via Teclado (Tab/Enter/Espaço), Contraste WCAG 2.1 AA (&ge; 4.5:1), <code>aria-live="polite"</code> e <code>aria-label</code> dinâmico.</p>
+        <p><strong>Segurança do Código:</strong> Manipulação de nós via <code>textContent</code> e APIs DOM seguras — 0% <code>innerHTML</code> ou <code>eval</code>.</p>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

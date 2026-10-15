@@ -1,0 +1,564 @@
+/* ==========================================================================
+   Jogo da Velha — Solução MVC (Engenharia de Software)
+   Estilização Moderna, Responsiva (CSS Grid / Flexbox) e Acessível (WCAG AA)
+   ========================================================================== */
+
+:root {
+  /* Cores Principais - Contraste certificado WCAG 2.1 AA (>= 4.5:1) */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+  --color-border: #cbd5e1;
+  --color-border-focus: #2563eb;
+
+  /* Tipografia & Textos */
+  --color-text-main: #0f172a;      /* Contraste > 12:1 contra #f8fafc */
+  --color-text-muted: #475569;     /* Contraste > 5.5:1 contra #f8fafc */
+  --color-text-white: #ffffff;
+
+  /* Jogador X (Azul Intenso) */
+  --color-player-x: #1d4ed8;       /* Contraste > 4.5:1 */
+  --color-player-x-bg: #eff6ff;
+  --color-player-x-border: #93c5fd;
+
+  /* Jogador O (Rubro / Coral Escuro) */
+  --color-player-o: #b91c1c;       /* Contraste > 4.5:1 */
+  --color-player-o-bg: #fef2f2;
+  --color-player-o-border: #fca5a5;
+
+  /* Estados de Jogo (Vitória, Alerta e Empate) */
+  --color-win: #15803d;            /* Contraste > 4.5:1 */
+  --color-win-bg: #dcfce7;
+  --color-win-border: #86efac;
+
+  --color-draw: #475569;
+  --color-draw-bg: #f1f5f9;
+
+  --color-danger: #b91c1c;
+  --color-danger-hover: #991b1b;
+  --color-danger-bg: #fef2f2;
+
+  /* Efeitos e Dimensões */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Reset básico e tipografia */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+}
+
+/* Envoltório da Página */
+.page-wrapper {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ==========================================================================
+   Cabeçalho
+   ========================================================================== */
+.main-header {
+  text-align: center;
+}
+
+.header-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.badge-primary {
+  background-color: var(--color-player-x-bg);
+  color: var(--color-player-x);
+  border: 1px solid var(--color-player-x-border);
+}
+
+.badge-secondary {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #d8b4fe;
+}
+
+.badge-accent {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.main-title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-main);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   Container Principal do Jogo
+   ========================================================================== */
+.game-container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ==========================================================================
+   Placar da Sessão (RF07)
+   ========================================================================== */
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.score-card {
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  border: 2px solid transparent;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.score-card-x {
+  background-color: var(--color-player-x-bg);
+  border-color: var(--color-player-x-border);
+  color: var(--color-player-x);
+}
+
+.score-card-draw {
+  background-color: var(--color-draw-bg);
+  border-color: var(--color-border);
+  color: var(--color-draw);
+}
+
+.score-card-o {
+  background-color: var(--color-player-o-bg);
+  border-color: var(--color-player-o-border);
+  color: var(--color-player-o);
+}
+
+.score-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.score-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Banner de Status (RF03, RF05, RNF05)
+   ========================================================================== */
+.status-section {
+  display: flex;
+  justify-content: center;
+}
+
+.status-banner {
+  width: 100%;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all var(--transition-normal);
+  border: 2px solid transparent;
+}
+
+.status-banner.status-x {
+  background-color: var(--color-player-x-bg);
+  color: var(--color-player-x);
+  border-color: var(--color-player-x-border);
+}
+
+.status-banner.status-o {
+  background-color: var(--color-player-o-bg);
+  color: var(--color-player-o);
+  border-color: var(--color-player-o-border);
+}
+
+.status-banner.status-win {
+  background-color: var(--color-win-bg);
+  color: var(--color-win);
+  border-color: var(--color-win-border);
+  animation: pulse-win 1s ease-in-out infinite alternate;
+}
+
+.status-banner.status-draw {
+  background-color: var(--color-draw-bg);
+  color: var(--color-text-main);
+  border-color: var(--color-border);
+}
+
+/* ==========================================================================
+   Tabuleiro 3x3 (RF01, RF02, RF04)
+   ========================================================================== */
+.board-section {
+  display: flex;
+  justify-content: center;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+  background-color: var(--color-border);
+  padding: 10px;
+  border-radius: var(--radius-md);
+}
+
+/* Células individuais */
+.cell {
+  aspect-ratio: 1 / 1;
+  background-color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: clamp(2.5rem, 8vw, 3.5rem);
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.cell:hover:not(:disabled):not(.cell-occupied) {
+  background-color: var(--color-surface-hover);
+  transform: scale(1.02);
+}
+
+/* Estilo de Foco Acessível (RNF05, CT09) */
+.cell:focus-visible {
+  outline: 3px solid var(--color-border-focus);
+  outline-offset: 3px;
+  z-index: 2;
+}
+
+/* Marcação X */
+.cell[data-mark="X"] {
+  color: var(--color-player-x);
+}
+
+/* Marcação O */
+.cell[data-mark="O"] {
+  color: var(--color-player-o);
+}
+
+/* Célula ocupada */
+.cell.cell-occupied {
+  cursor: not-allowed;
+}
+
+/* Célula Vencedora (CT01, CT02, CT03) */
+.cell.winning-cell {
+  background-color: var(--color-win-bg) !important;
+  color: var(--color-win) !important;
+  box-shadow: 0 0 0 3px var(--color-win-border) inset, 0 4px 10px rgba(22, 163, 74, 0.25);
+  animation: bounce-win 0.6s ease;
+}
+
+/* Feedback de Casa Já Ocupada (CT05 / RF04) */
+.cell.shake {
+  animation: cell-shake 0.4s ease-in-out;
+  background-color: var(--color-danger-bg);
+}
+
+/* Tabuleiro bloqueado ao final da partida (RN04) */
+.board-grid.game-over .cell:not(.winning-cell) {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* ==========================================================================
+   Botões de Ação
+   ========================================================================== */
+.actions-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.btn-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.btn-primary {
+  background-color: var(--color-player-x);
+  color: var(--color-text-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background-color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-danger {
+  background-color: transparent;
+  color: var(--color-danger);
+  border-color: #fca5a5;
+}
+
+.btn-outline-danger:hover {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-text-white);
+}
+
+.btn-danger:hover {
+  background-color: var(--color-danger-hover);
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: var(--color-text-main);
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   Modal / Diálogo de Confirmação (RF08, RN07)
+   ========================================================================== */
+.confirm-dialog {
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 440px;
+  width: 90%;
+  background: var(--color-surface);
+}
+
+.confirm-dialog::backdrop {
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-content {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.dialog-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.dialog-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.dialog-description {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.dialog-actions {
+  display: flex;
+  width: 100%;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.dialog-actions .btn {
+  flex: 1;
+}
+
+/* ==========================================================================
+   Rodapé Pedagógico
+   ========================================================================== */
+.pedagogical-footer {
+  margin-top: 0.5rem;
+}
+
+.footer-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-card h3 {
+  font-size: 0.95rem;
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.footer-card code {
+  background-color: #f1f5f9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--color-player-x);
+}
+
+/* ==========================================================================
+   Animações
+   ========================================================================== */
+@keyframes cell-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes bounce-win {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-win {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.02); }
+}
+
+/* ==========================================================================
+   Responsividade (RNF01: 360px até 1440px+)
+   ========================================================================== */
+@media (max-width: 480px) {
+  body {
+    padding: 1rem 0.5rem;
+  }
+
+  .game-container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .scoreboard {
+    gap: 0.4rem;
+  }
+
+  .score-card {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .score-label {
+    font-size: 0.65rem;
+  }
+
+  .score-value {
+    font-size: 1.4rem;
+  }
+
+  .board-grid {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .dialog-actions {
+    flex-direction: column;
+  }
+}

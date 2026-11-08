@@ -604,3 +604,20 @@ body {
     color: var(--color-player-x);
     box-shadow: var(--shadow-sm);
   }
+/* Duelo local com três vidas */
+.duel-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: 100%; }
+.hangman-card { text-align: center; border: 1px solid currentColor; border-radius: 16px; padding: 1rem; }
+.hangman-x { color: var(--color-player-x); background: var(--color-player-x-bg); }
+.hangman-o { color: var(--color-player-o); background: var(--color-player-o-bg); }
+.hangman-card h2 { font-size: 1.1rem; }
+.hangman { width: 100%; max-width: 180px; height: 170px; fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.hangman .scaffold { stroke: var(--color-text-muted); stroke-width: 3; }
+.lives { font-weight: 700; }
+.round-number { text-align: center; font-weight: 700; margin: 1rem 0; }
+.difficulty-section { display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1rem 0; }
+.difficulty-section[hidden] { display: none; }
+.difficulty-section select { font: inherit; padding: .5rem; max-width: 100%; border: 1px solid var(--color-border); border-radius: 8px; background: white; color: var(--color-text-main); }
+.duel-rules { text-align: center; font-size: .875rem; color: var(--color-text-muted); margin-bottom: 1rem; }
+button:disabled { cursor: default; }
+.btn:disabled { opacity: .55; }
+@media (max-width: 400px) { .hangman-card { padding: .5rem; } .hangman { height: 135px; } }

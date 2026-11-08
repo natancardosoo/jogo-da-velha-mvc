@@ -1,3 +1,29 @@
+# Duelo da Velha — 3 vidas
+
+Jogo local em HTML, CSS e JavaScript com arquitetura MVC. Abra `index.html` no navegador, sem instalação ou servidor.
+
+## Regras do duelo
+
+- Modos: duas pessoas no mesmo dispositivo ou jogador contra bot.
+- Cada participante começa com três vidas. Uma derrota desenha a cabeça; a segunda acrescenta o tronco e os dois braços; a terceira acrescenta as pernas e encerra o duelo.
+- Empates não retiram vidas. O participante que começa alterna a cada rodada, inclusive após empates.
+- **Próxima rodada** preserva vidas e placar e só fica disponível ao terminar a rodada.
+- **Jogar revanche** reinicia o duelo após o resultado final. **Novo duelo** permite recomeçar mediante confirmação.
+- Trocar modo ou dificuldade reinicia o duelo. Não há contas, multiplayer online ou persistência após recarregar a página.
+- Bot fácil: aleatório; médio (padrão): 50% aleatório e 50% Minimax por jogada; difícil: Minimax.
+
+## Organização e validação
+
+`GameModel` controla rodadas, vidas e resultado do duelo; `GameView` apresenta o estado; `GameController` coordena os eventos e cancela jogadas pendentes do bot ao reiniciar.
+
+Execute `node --test tests/game.test.cjs` para verificar as regras e o ciclo de turnos.
+
+---
+
+## Documentação original da versão anterior
+
+O conteúdo abaixo e o documento Word descrevem a versão anterior, sem o sistema de vidas.
+
 # Jogo da Velha — Arquitetura MVC e Engenharia de Software
 
 Projeto acadêmico interativo desenvolvido para a disciplina de **Engenharia de Software**, abordando o levantamento formal de requisitos, regras de negócio, acessibilidade web (WCAG 2.1 AA) e implementação pura no padrão arquitetural **MVC (Model-View-Controller)**.

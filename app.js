@@ -27,8 +27,13 @@ class GameModel {
 
     // Configurações do modo de jogo
     this.gameMode = 'bot';        // 'bot' (Humano vs Bot) ou 'pvp' (Humano vs Humano)
-    this.botDifficulty = 'hard';  // 'easy', 'medium', 'hard' (Minimax)
+    this.botDifficulty = 'medium';  // 'easy', 'medium', 'hard' (Minimax)
     this.botPlayer = 'O';         // Bot joga como 'O'
+
+    this.lives = { X: 3, O: 3 };
+    this.round = 1;
+    this.startingPlayer = 'X';
+    this.duelWinner = null;
 
     this.scores = {
       X: 0,
@@ -38,8 +43,8 @@ class GameModel {
   }
 
   makeMove(index) {
-    if (this.isGameOver) return { success: false, reason: 'GAME_OVER' };
-    if (index < 0 || index > 8) return { success: false, reason: 'INVALID_INDEX' };
+    if (this.isGameOver || this.duelWinner) return { success: false, reason: 'GAME_OVER' };
+    if (!Number.isInteger(index) || index < 0 || index > 8) return { success: false, reason: 'INVALID_INDEX' };
     if (this.board[index] !== null) return { success: false, reason: 'OCCUPIED' };
 
     this.board[index] = this.currentPlayer;
@@ -50,6 +55,9 @@ class GameModel {
       this.winner = this.currentPlayer;
       this.winningCombo = winCombo;
       this.scores[this.currentPlayer] += 1;
+      const loser = this.currentPlayer === 'X' ? 'O' : 'X';
+      this.lives[loser] -= 1;
+      if (this.lives[loser] === 0) this.duelWinner = this.currentPlayer;
 
       return {
         success: true,
@@ -100,6 +108,7 @@ class GameModel {
    * Lógica da Inteligência Artificial do Bot
    */
   getBotMove() {
+    if (this.isGameOver || this.duelWinner) return null;
     const emptyIndices = this.board
       .map((val, idx) => (val === null ? idx : null))
       .filter(val => val !== null);
@@ -175,16 +184,29 @@ class GameModel {
 
   resetBoard() {
     this.board = Array(9).fill(null);
-    this.currentPlayer = 'X';
+    this.currentPlayer = this.startingPlayer || 'X';
     this.isGameOver = false;
     this.winner = null;
     this.winningCombo = null;
   }
 
-  resetScores() {
+  nextRound() {
+    if (!this.isGameOver || this.duelWinner) return false;
+    this.round += 1;
+    this.startingPlayer = this.startingPlayer === 'X' ? 'O' : 'X';
+    this.resetBoard();
+    return true;
+  }
+
+  resetDuel() {
+    this.lives = { X: 3, O: 3 };
     this.scores = { X: 0, O: 0, draws: 0 };
+    this.round = 1;
+    this.startingPlayer = 'X';
+    this.duelWinner = null;
     this.resetBoard();
   }
+
 }
 
 /**
@@ -213,6 +235,8 @@ class GameView {
     this.btnModeBot = document.getElementById('btnModeBot');
     this.btnModePvp = document.getElementById('btnModePvp');
 
+    this.difficulty = document.getElementById('botDifficulty');
+    this.difficultySection = document.getElementById('difficultySection');
     this.audioContext = null;
   }
 
@@ -241,6 +265,7 @@ class GameView {
   renderBoard(board, winningCombo = null, isGameOver = false) {
     this.cellElements.forEach((cell, index) => {
       const mark = board[index];
+      cell.disabled = isGameOver;
       const row = cell.getAttribute('data-row');
       const col = cell.getAttribute('data-col');
 
@@ -268,6 +293,29 @@ class GameView {
     } else {
       this.boardGrid.classList.remove('game-over');
     }
+  }
+
+  renderDuel(model) {
+    document.getElementById('roundNumber').textContent = `Rodada ${model.round}`;
+    for (const player of ['X', 'O']) {
+      document.getElementById(`name${player}`).textContent =
+        model.gameMode === 'bot' && player === model.botPlayer ? 'Bot (O)' : `Jogador ${player}`;
+      document.getElementById(`lives${player}`).textContent = `${model.lives[player]} de 3 vidas`;
+      const losses = 3 - model.lives[player];
+      document.querySelectorAll(`#hangman${player} [data-stage]`).forEach(part => {
+        part.style.visibility = Number(part.dataset.stage) <= losses ? 'visible' : 'hidden';
+      });
+    }
+    this.difficultySection.hidden = model.gameMode !== 'bot';
+    this.difficulty.value = model.botDifficulty;
+    this.btnNewGame.textContent = model.duelWinner ? 'Jogar revanche' : 'Próxima rodada';
+    this.btnNewGame.disabled = !model.isGameOver;
+    this.btnResetScores.textContent = 'Novo duelo';
+    this.renderScores(model.scores);
+  }
+
+  bindDifficultyChange(handler) {
+    this.difficulty.addEventListener('change', () => handler(this.difficulty.value));
   }
 
   renderScores(scores) {
@@ -334,7 +382,7 @@ class GameView {
     if (typeof this.confirmDialog.showModal === 'function') {
       this.confirmDialog.showModal();
     } else {
-      if (window.confirm('Tem certeza de que deseja zerar todas as pontuações acumuladas?')) {
+      if (window.confirm('Iniciar um novo duelo? As vidas e o placar serão reiniciados.')) {
         this.btnConfirmReset.click();
       }
     }
@@ -385,6 +433,7 @@ class GameController {
     this.model = model;
     this.view = view;
     this.isBotThinking = false;
+    this.botTimer = null;
 
     // Bindings de eventos organizados dentro do construtor
     this.view.bindCellClick(this.handleCellClick.bind(this));
@@ -394,81 +443,101 @@ class GameController {
     this.view.bindCancelReset(this.handleCancelReset.bind(this));
     this.view.bindModeChange(this.handleModeChange.bind(this));
 
+    this.view.bindDifficultyChange(this.handleDifficultyChange.bind(this));
     this.init();
   }
 
   init() {
-    this.view.renderBoard(this.model.board, null, false);
-    this.view.renderScores(this.model.scores);
-    this.view.renderStatus('Vez do Jogador X', 'status-x');
     this.view.setActiveMode(this.model.gameMode);
+    this.render();
+    this.updateTurn();
+  }
+
+  playerName(player) {
+    return this.model.gameMode === 'bot' && player === this.model.botPlayer
+      ? 'Bot (O)' : `Jogador ${player}`;
+  }
+
+  render() {
+    this.view.renderBoard(this.model.board, this.model.winningCombo, this.model.isGameOver);
+    this.view.renderDuel(this.model);
+  }
+
+  updateTurn() {
+    const botTurn = this.model.gameMode === 'bot' && this.model.currentPlayer === this.model.botPlayer;
+    this.view.renderStatus(botTurn ? 'Bot está pensando...' : `Vez do ${this.playerName(this.model.currentPlayer)}`,
+      this.model.currentPlayer === 'X' ? 'status-x' : 'status-o');
+    if (botTurn) this.triggerBotTurn();
   }
 
   handleCellClick(index) {
-    if (this.isBotThinking) return;
+    if (this.isBotThinking || (this.model.gameMode === 'bot' && this.model.currentPlayer === this.model.botPlayer)) return;
     this.executeMove(index);
   }
 
   executeMove(index) {
     const result = this.model.makeMove(index);
-
-    if (result.success) {
-      if (result.isWin) {
-        this.view.renderBoard(this.model.board, result.winningCombo, true);
-        this.view.renderScores(result.scores);
-        const winnerName = (this.model.gameMode === 'bot' && result.winner === this.model.botPlayer) 
-          ? 'Bot (O)' 
-          : `Jogador ${result.winner}`;
-        this.view.renderStatus(`Vitória do ${winnerName}! 🎉`, 'status-win');
-      } else if (result.isDraw) {
-        this.view.renderBoard(this.model.board, null, true);
-        this.view.renderScores(result.scores);
-        this.view.renderStatus('Partida empatada! 🤝', 'status-draw');
-      } else {
-        this.view.renderBoard(this.model.board, null, false);
-        const statusClass = result.nextPlayer === 'X' ? 'status-x' : 'status-o';
-        
-        const turnText = (this.model.gameMode === 'bot' && result.nextPlayer === this.model.botPlayer)
-          ? 'Bot está pensando...'
-          : `Vez do Jogador ${result.nextPlayer}`;
-
-        this.view.renderStatus(turnText, statusClass);
-
-        if (this.model.gameMode === 'bot' && result.nextPlayer === this.model.botPlayer && !this.model.isGameOver) {
-          this.triggerBotTurn();
-        }
-      }
+    if (!result.success) {
+      if (result.reason === 'OCCUPIED') this.view.triggerInvalidFeedback(index);
+      return;
+    }
+    this.render();
+    if (this.model.duelWinner) {
+      this.view.renderStatus(`${this.playerName(this.model.duelWinner)} venceu o duelo!`, 'status-win');
+    } else if (result.isWin) {
+      const loser = result.winner === 'X' ? 'O' : 'X';
+      this.view.renderStatus(`${this.playerName(result.winner)} venceu a rodada! ${this.playerName(loser)} perdeu uma vida.`, 'status-win');
+    } else if (result.isDraw) {
+      this.view.renderStatus('Empate! Ninguém perdeu vida.', 'status-draw');
     } else {
-      if (result.reason === 'OCCUPIED') {
-        this.view.triggerInvalidFeedback(index);
-      }
+      this.updateTurn();
     }
   }
 
+  cancelBotTurn() {
+    clearTimeout(this.botTimer);
+    this.botTimer = null;
+    this.isBotThinking = false;
+  }
+
   triggerBotTurn() {
+    this.cancelBotTurn();
     this.isBotThinking = true;
-
-    setTimeout(() => {
-      const botMove = this.model.getBotMove();
+    this.botTimer = setTimeout(() => {
+      this.botTimer = null;
       this.isBotThinking = false;
-
-      if (botMove !== null) {
-        this.executeMove(botMove);
-      }
+      if (this.model.gameMode !== 'bot' || this.model.currentPlayer !== this.model.botPlayer || this.model.isGameOver) return;
+      const move = this.model.getBotMove();
+      if (move !== null) this.executeMove(move);
     }, 400);
   }
 
   handleModeChange(mode) {
+    if (!['bot', 'pvp'].includes(mode) || mode === this.model.gameMode) return;
     this.model.gameMode = mode;
-    this.view.setActiveMode(mode);
-    this.handleNewGame();
+    this.restartDuel();
+  }
+
+  handleDifficultyChange(difficulty) {
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) return;
+    this.model.botDifficulty = difficulty;
+    this.restartDuel();
+  }
+
+  restartDuel() {
+    this.cancelBotTurn();
+    this.model.resetDuel();
+    this.init();
   }
 
   handleNewGame() {
-    this.isBotThinking = false;
-    this.model.resetBoard();
-    this.view.renderBoard(this.model.board, null, false);
-    this.view.renderStatus('Vez do Jogador X', 'status-x');
+    if (this.model.duelWinner) {
+      this.restartDuel();
+    } else if (this.model.nextRound()) {
+      this.cancelBotTurn();
+      this.render();
+      this.updateTurn();
+    }
   }
 
   handleOpenResetModal() {
@@ -476,17 +545,14 @@ class GameController {
   }
 
   handleConfirmReset() {
-    this.isBotThinking = false;
     this.view.closeConfirmModal();
-    this.model.resetScores();
-    this.view.renderScores(this.model.scores);
-    this.view.renderBoard(this.model.board, null, false);
-    this.view.renderStatus('Vez do Jogador X', 'status-x');
+    this.restartDuel();
   }
 
   handleCancelReset() {
     this.view.closeConfirmModal();
   }
+
 }
 
 /**

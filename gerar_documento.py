@@ -93,7 +93,7 @@ def build_document(output_path):
     doc.add_paragraph('Jogo local com três vidas e arquitetura MVC', 'Subtitle')
     p('Atualização de 8 de novembro de 2026')
     p('Este documento descreve as regras, a organização do código e a execução da versão atual. Cada partida de jogo da velha é uma rodada de um duelo maior. As derrotas desenham um personagem de forca; quem perde as três vidas perde o duelo.')
-    h('1 Escopo e regras do duelo', 1)
+    h('1) Escopo e regras do duelo', 1)
     p('Há dois modos locais: duas pessoas no mesmo dispositivo ou uma pessoa contra o bot. Não há multiplayer online, contas de jogadores, comunicação entre dispositivos nem adivinhação de palavras. A forca representa as vidas perdidas.')
     p('Cada participante mantém seu símbolo durante o duelo. X inicia a primeira rodada. Depois, quem começa alterna, inclusive após empates. No modo contra o computador, o bot joga com O e inicia as rodadas pares.')
     table(['Derrotas', 'Desenho acrescentado', 'Vidas restantes'], [
@@ -104,7 +104,7 @@ def build_document(output_path):
     h('Diferença entre rodada e duelo')
     p('Rodada é uma disputa no tabuleiro de nove casas. Duelo é a sequência de rodadas que compartilham vidas e placar. O placar conta vitórias de rodadas e empates do duelo atual, sem histórico de duelos vencidos.')
 
-    page('2 Requisitos e controles')
+    page('2) Requisitos e controles')
     table(['ID', 'Requisito funcional atual'], [
         ['RF01', 'Exibir tabuleiro 3 por 3 e aceitar jogadas em casas vazias no turno correto.'],
         ['RF02', 'Detectar vitória nas oito combinações possíveis e empate sem combinação vencedora.'],
@@ -124,7 +124,7 @@ def build_document(output_path):
     h('Dados e apresentação')
     p('O estado fica na memória da página. Recarregar restaura nomes padrão, três vidas, modo contra bot e dificuldade média. Foram removidos os três selos acadêmicos do cabeçalho e o quadro pedagógico do rodapé. O título e as instruções do jogo permanecem.')
 
-    page('3 Arquitetura e estado')
+    page('3) Arquitetura e estado')
     p('O jogo usa HTML, CSS e JavaScript sem frameworks ou etapa de build. As classes MVC ficam em app.js. O evento DOMContentLoaded cria modelo, visão e controlador; window.gameApp expõe o controlador para inspeção.')
     table(['Camada', 'Responsabilidade'], [
         ['GameModel', 'Mantém estado, valida jogadas, aplica as regras de rodada e duelo e calcula a jogada do bot. Não manipula o DOM.'],
@@ -140,7 +140,7 @@ def build_document(output_path):
     p('nextRound recusa o avanço antes do resultado ou depois do fim do duelo. Caso permitido, incrementa round, alterna startingPlayer e limpa o tabuleiro por resetBoard. resetDuel restaura vidas, rodada e placar sem alterar nomes, modo ou dificuldade.')
     p('getPlayerName resolve o nome exibido; setPlayerName valida o símbolo, remove espaços nas extremidades e limita o texto. renderDuel atualiza os cartões, o placar e os estágios SVG conforme as vidas.')
 
-    page('4 Bot nomes e interface')
+    page('4) Bot nomes e interface')
     table(['Opção', 'Valor interno', 'Escolha da jogada'], [
         ['Fácil', 'easy', 'Escolhe aleatoriamente uma casa vazia.'],
         ['Médio', 'medium', 'A cada turno, 50% de chance de jogar aleatoriamente e 50% de usar Minimax. É o padrão inicial.'],
@@ -157,7 +157,7 @@ def build_document(output_path):
     h('Acessibilidade implementada')
     p('As casas são botões nativos com foco visível, rótulos de linha e coluna e acionamento por teclado. O status usa role="status" e aria-live="polite". CSS Grid e Flexbox adaptam o layout. Esses recursos não equivalem a uma certificação WCAG 2.1 AA, que exige auditoria específica.')
 
-    page('5 Execução e validação')
+    page('5) Execução e validação')
     table(['Arquivo', 'Função'], [
         ['index.html', 'Estrutura da tela, controles, diálogo e SVGs.'],
         ['styles.css', 'Layout responsivo, cores, foco e estados visuais.'],
@@ -178,7 +178,7 @@ def build_document(output_path):
     ], [4.6, 12.4])
     p('Os quatro testes automatizados passaram na implementação. As verificações de navegador foram complementares e não compõem uma suíte versionada. Não foram medidos tempos máximos de resposta nem realizada auditoria completa de acessibilidade ou de todos os navegadores.')
 
-    page('6 Guia de apresentação e manutenção')
+    page('6) Guia de apresentação e manutenção')
     h('Por que manter MVC')
     p('A separação permite testar as regras sem abrir a interface. GameModel recebe ações e retorna dados; GameView apresenta o estado e fornece eventos; GameController coordena o fluxo. A evolução para vidas e múltiplas rodadas reaproveitou o tabuleiro e o Minimax.')
     h('Como evitar o desconto duplicado de vidas')

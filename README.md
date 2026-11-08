@@ -22,7 +22,7 @@ Execute `node --test tests/game.test.cjs` para verificar as regras e o ciclo de 
 
 ## Documentação original da versão anterior
 
-O conteúdo abaixo e o documento Word descrevem a versão anterior, sem o sistema de vidas.
+O conteúdo abaixo descreve a versão anterior, sem o sistema de vidas. O arquivo Documentacao_Tecnica_Jogo_da_Velha_MVC.docx contém a documentação atual e pode ser regenerado com gerar_documento.py (requer python-docx no ambiente de autoria).
 
 # Jogo da Velha — Arquitetura MVC e Engenharia de Software
 

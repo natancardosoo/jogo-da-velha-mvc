@@ -1,446 +1,203 @@
 # -*- coding: utf-8 -*-
-"""
-Script gerador da documentação técnica e guia de defesa acadêmica em formato Word (.docx).
-"""
+"""Atualiza o Word técnico do projeto. Dependência de autoria: python-docx."""
+from pathlib import Path
+from docx import Document
+from docx.shared import Cm, Pt, RGBColor
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
 
-import os
-import docx
-from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import OxmlElement, parse_xml
-from docx.oxml.ns import nsdecls, qn
-
-def set_cell_background(cell, hex_color):
-    """Define a cor de fundo de uma célula da tabela."""
-    tc_pr = cell._tc.get_or_add_tcPr()
-    shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{hex_color}"/>')
-    tc_pr.append(shd)
-
-def set_cell_margins(cell, top=120, bottom=120, left=150, right=150):
-    """Ajusta o padding interno das células."""
-    tc_pr = cell._tc.get_or_add_tcPr()
-    tc_mar = parse_xml(
-        f'<w:tcMar {nsdecls("w")}>'
-        f'<w:top w:w="{top}" w:type="dxa"/>'
-        f'<w:bottom w:w="{bottom}" w:type="dxa"/>'
-        f'<w:left w:w="{left}" w:type="dxa"/>'
-        f'<w:right w:w="{right}" w:type="dxa"/>'
-        f'</w:tcMar>'
-    )
-    tc_pr.append(tc_mar)
-
-def create_callout_box(doc, title, text, border_color="1D4ED8", bg_color="EFF6FF"):
-    """Cria uma caixa destacada (callout) para perguntas do professor."""
-    tbl = doc.add_table(rows=1, cols=1)
-    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl.autofit = False
-    
-    cell = tbl.cell(0, 0)
-    cell.width = Inches(6.5)
-    set_cell_background(cell, bg_color)
-    set_cell_margins(cell, top=140, bottom=140, left=200, right=200)
-    
-    # Borda esquerda grossa
-    tc_pr = cell._tc.get_or_add_tcPr()
-    borders = parse_xml(
-        f'<w:tcBorders {nsdecls("w")}>'
-        f'<w:top w:val="none"/>'
-        f'<w:left w:val="single" w:sz="36" w:space="0" w:color="{border_color}"/>'
-        f'<w:bottom w:val="none"/>'
-        f'<w:right w:val="none"/>'
-        f'</w:tcBorders>'
-    )
-    tc_pr.append(borders)
-    
-    p = cell.paragraphs[0]
-    p.paragraph_format.space_before = Pt(2)
-    p.paragraph_format.space_after = Pt(4)
-    run_t = p.add_run(f"❓ {title}\n")
-    run_t.bold = True
-    run_t.font.name = "Arial"
-    run_t.font.size = Pt(11)
-    run_t.font.color.rgb = RGBColor(0x1E, 0x3A, 0x8A)
-    
-    p2 = cell.add_paragraph()
-    p2.paragraph_format.space_before = Pt(2)
-    p2.paragraph_format.space_after = Pt(2)
-    p2.paragraph_format.line_spacing = 1.15
-    run_ans = p2.add_run(f"💡 Resposta Técnica Recomendada:\n{text}")
-    run_ans.font.name = "Arial"
-    run_ans.font.size = Pt(10)
-    run_ans.font.color.rgb = RGBColor(0x0F, 0x17, 0x2A)
-    
-    # Espaço após a caixa
-    p_after = doc.add_paragraph()
-    p_after.paragraph_format.space_before = Pt(0)
-    p_after.paragraph_format.space_after = Pt(6)
 
 def build_document(output_path):
-    doc = docx.Document()
-    
-    # Configuração de Margens (2.5 cm = ~1 polegada)
-    for section in doc.sections:
-        section.top_margin = Inches(1.0)
-        section.bottom_margin = Inches(1.0)
-        section.left_margin = Inches(1.0)
-        section.right_margin = Inches(1.0)
-    
-    # Cores do Documento
-    PRIMARY_COLOR = RGBColor(0x1D, 0x4E, 0xD8)   # Azul Royal
-    TEXT_COLOR = RGBColor(0x0F, 0x17, 0x2A)      # Slate Escuro
-    MUTED_COLOR = RGBColor(0x47, 0x55, 0x69)     # Slate Médio
-    
-    # =========================================================================
-    # CAPA / CABEÇALHO DO DOCUMENTO
-    # =========================================================================
-    p_header_inst = doc.add_paragraph()
-    p_header_inst.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run_inst = p_header_inst.add_run("CURSO DE ENGENHARIA DE SOFTWARE / CIÊNCIA DA COMPUTAÇÃO\nDISCIPLINA DE ARQUITETURA E DESENVOLVIMENTO DE SOFTWARE")
-    run_inst.font.name = "Arial"
-    run_inst.font.size = Pt(10)
-    run_inst.font.color.rgb = MUTED_COLOR
-    run_inst.bold = True
-    
-    p_sep = doc.add_paragraph()
-    p_sep.paragraph_format.space_after = Pt(24)
-    
-    p_title = doc.add_paragraph()
-    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_title.paragraph_format.space_after = Pt(8)
-    run_title = p_title.add_run("DOCUMENTAÇÃO TÉCNICA E GUIA DE DEFESA")
-    run_title.font.name = "Arial"
-    run_title.font.size = Pt(22)
-    run_title.bold = True
-    run_title.font.color.rgb = PRIMARY_COLOR
-    
-    p_sub = doc.add_paragraph()
-    p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_sub.paragraph_format.space_after = Pt(20)
-    run_sub = p_sub.add_run("Estudo de Caso: Jogo da Velha Interativo em Padrão MVC Baunilha com Acessibilidade WCAG 2.1 AA")
-    run_sub.font.name = "Arial"
-    run_sub.font.size = Pt(13)
-    run_sub.font.color.rgb = TEXT_COLOR
-    
-    # Tabela de Metadados
-    tbl_meta = doc.add_table(rows=4, cols=2)
-    tbl_meta.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl_meta.autofit = False
-    
-    meta_info = [
-        ("Tema do Projeto:", "Especificação Formal de Requisitos e Arquitetura MVC"),
-        ("Stack Tecnológica:", "HTML5 Semântico, CSS3 Moderno e JavaScript Puro (ES2020)"),
-        ("Critérios de Avaliação:", "Conformidade Total com a Rubrica Pedagógica (100% Excelente)"),
-        ("Execução e Deploy:", "100% Offline via file:/// e Compatível com GitHub Pages")
-    ]
-    
-    for i, (k, v) in enumerate(meta_info):
-        c0 = tbl_meta.cell(i, 0)
-        c1 = tbl_meta.cell(i, 1)
-        c0.width = Inches(2.2)
-        c1.width = Inches(4.3)
-        set_cell_background(c0, "F1F5F9")
-        set_cell_background(c1, "FFFFFF")
-        set_cell_margins(c0, 60, 60, 100, 100)
-        set_cell_margins(c1, 60, 60, 100, 100)
-        
-        p0 = c0.paragraphs[0]
-        r0 = p0.add_run(k)
-        r0.bold = True
-        r0.font.name = "Arial"
-        r0.font.size = Pt(9.5)
-        
-        p1 = c1.paragraphs[0]
-        r1 = p1.add_run(v)
-        r1.font.name = "Arial"
-        r1.font.size = Pt(9.5)
-        
-    doc.add_page_break()
-    
-    # =========================================================================
-    # SEÇÃO 1: INTRODUÇÃO E ESPECIFICAÇÃO DO PROBLEMA
-    # =========================================================================
-    h1 = doc.add_heading("1. Introdução e Contextualização do Projeto", level=1)
-    h1.paragraph_format.space_before = Pt(12)
-    h1.paragraph_format.space_after = Pt(6)
-    h1.runs[0].font.color.rgb = PRIMARY_COLOR
-    h1.runs[0].font.name = "Arial"
-    
-    p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.2
-    p.paragraph_format.space_after = Pt(8)
-    p.add_run(
-        "Este documento consolida a documentação técnica completa e a fundamentação teórica utilizada no desenvolvimento "
-        "do projeto interativo Jogo da Velha (Tic-Tac-Toe), concebido no âmbito da disciplina de Engenharia de Software. "
-        "A proposta do trabalho transcende a simples criação de um jogo: trata-se da materialização rigorosa de uma especificação "
-        "formal de requisitos de software (8 Requisitos Funcionais e 7 Requisitos Não Funcionais), conformidade com 7 Regras de Negócio "
-        "infalíveis e validação estrita sob uma matriz com 10 Casos de Teste (CT01 a CT10)."
-    )
-    
-    p2 = doc.add_paragraph()
-    p2.paragraph_format.line_spacing = 1.2
-    p2.paragraph_format.space_after = Pt(12)
-    p2.add_run(
-        "Um dos principais desafios pedagógicos consistiu em desenvolver uma aplicação 100% Baunilha (Vanilla), "
-        "ou seja, sem frameworks auxiliares (React, Vue, Angular), sem bundlers (Webpack, Vite) e sem dependências remotas (CDNs, npm). "
-        "Essa escolha técnica garante portabilidade absoluta: o projeto pode ser executado instantaneamente via protocolo file:/// em "
-        "qualquer computador do laboratório da faculdade e disponibilizado publicamente sem etapa de build no GitHub Pages."
-    )
-    
-    # =========================================================================
-    # SEÇÃO 2: ARQUITETURA MVC NO FRONT-END
-    # =========================================================================
-    h1 = doc.add_heading("2. Arquitetura da Solução: Padrão MVC Estrito", level=1)
-    h1.paragraph_format.space_before = Pt(14)
-    h1.paragraph_format.space_after = Pt(6)
-    h1.runs[0].font.color.rgb = PRIMARY_COLOR
-    h1.runs[0].font.name = "Arial"
-    
-    p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.2
-    p.paragraph_format.space_after = Pt(8)
-    p.add_run(
-        "O padrão arquitetural Model-View-Controller (MVC) foi implementado de forma pura no arquivo app.js através de classes "
-        "nativas do ECMAScript 2020. A segregação de responsabilidades é rigorosa (RNF06):"
-    )
-    
-    # Tabela MVC
-    tbl_mvc = doc.add_table(rows=4, cols=3)
-    tbl_mvc.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl_mvc.autofit = False
-    
-    headers = ["Camada", "Classe / Arquivo", "Responsabilidade e Escopo de Atuação"]
-    for j, text in enumerate(headers):
-        cell = tbl_mvc.cell(0, j)
-        set_cell_background(cell, "1D4ED8")
-        set_cell_margins(cell, 80, 80, 100, 100)
-        p_h = cell.paragraphs[0]
-        r_h = p_h.add_run(text)
-        r_h.bold = True
-        r_h.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        r_h.font.size = Pt(9.5)
-        
-    mvc_data = [
-        ("Model", "GameModel\n(app.js)", "Retém o estado central do jogo (array de 9 casas, jogador ativo, histórico de vitórias e empates, status de encerramento). Executa as regras de validação lógica (RN01 a RN07) e checa vitória/empate. Possui 0% de acoplamento com o DOM."),
-        ("View", "GameView\n(app.js e index.html)", "Controla exclusivamente a apresentação visual, manipulação segura dos elementos do DOM, acessibilidade ARIA (role='status', aria-live='polite', aria-label dinâmico), animações CSS de tremor e emissão de som sintético via Web Audio API."),
-        ("Controller", "GameController\n(app.js)", "Orquestrador da aplicação. Captura os eventos da View (cliques em células, botão Nova Partida, confirmação de Zerar Placar), repassa as intenções ao Model, recebe os resultados estruturados e comanda a atualização visual na View.")
-    ]
-    
-    widths = [Inches(1.2), Inches(1.6), Inches(3.7)]
-    for i, row_data in enumerate(mvc_data, start=1):
-        for j, text in enumerate(row_data):
-            cell = tbl_mvc.cell(i, j)
-            cell.width = widths[j]
-            set_cell_background(cell, "F8FAFC" if i % 2 == 1 else "FFFFFF")
-            set_cell_margins(cell, 70, 70, 90, 90)
-            p_c = cell.paragraphs[0]
-            p_c.paragraph_format.line_spacing = 1.15
-            r_c = p_c.add_run(text)
-            r_c.font.size = Pt(9)
-            if j == 0:
-                r_c.bold = True
-                
-    doc.add_paragraph().paragraph_format.space_after = Pt(10)
-    
-    # =========================================================================
-    # SEÇÃO 3: QUALIDADE DE CÓDIGO E SEGURANÇA
-    # =========================================================================
-    h1 = doc.add_heading("3. Segurança, Acessibilidade (WCAG AA) e Engenharia", level=1)
-    h1.paragraph_format.space_before = Pt(14)
-    h1.paragraph_format.space_after = Pt(6)
-    h1.runs[0].font.color.rgb = PRIMARY_COLOR
-    h1.runs[0].font.name = "Arial"
-    
-    p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.2
-    p.paragraph_format.space_after = Pt(8)
-    p.add_run(
-        "Para atingir a nota máxima (100% - Excelente) na rubrica pedagógica, três pilares técnicos fundamentais foram integrados:"
-    )
-    
-    bullets = [
-        ("Segurança contra Injeção (Zero innerHTML): ", "Toda manipulação textual é efetuada exclusivamente através da propriedade textContent, e alterações de estado ocorrem via setAttribute() e classList. Não há qualquer risco de Cross-Site Scripting (DOM-XSS), nem perda de desempenho com reparsing de árvores HTML."),
-        ("Acessibilidade Nativa e Dinâmica (WCAG 2.1 AA): ", "As 9 casas foram implementadas como elementos semânticos <button>. O foco visual é evidente (:focus-visible com contorno de 3px). Leitores de tela são alimentados em tempo real através de rótulos aria-label dinâmicos ('Linha 1, Coluna 1: Jogador X') e a região de status utiliza role='status' com aria-live='polite'."),
-        ("Navegação Total por Teclado: ", "O jogo é 100% jogável sem uso de mouse, utilizando a tecla Tab para transitar entre casas e Enter ou Espaço para registrar a marcação."),
-        ("Design Responsivo Fluido (RNF01): ", "Construído sobre CSS Grid e Flexbox com unidades dinâmicas clamp(), operando perfeitamente de 360px (smartphones compactos) até 1440px+ sem ocorrência de barra de rolagem horizontal.")
-    ]
-    
-    for title, desc in bullets:
-        bp = doc.add_paragraph(style='List Bullet')
-        bp.paragraph_format.line_spacing = 1.15
-        bp.paragraph_format.space_after = Pt(4)
-        rt = bp.add_run(title)
-        rt.bold = True
-        rt.font.color.rgb = PRIMARY_COLOR
-        rd = bp.add_run(desc)
-        rd.font.size = Pt(9.5)
-        
-    doc.add_page_break()
-    
-    # =========================================================================
-    # SEÇÃO 4: GUIA DE PERGUNTAS E RESPOSTAS PARA A DEFESA (O PONTO ALTO!)
-    # =========================================================================
-    h1 = doc.add_heading("4. Guia de Defesa Acadêmica: Perguntas Prováveis do Professor", level=1)
-    h1.paragraph_format.space_before = Pt(12)
-    h1.paragraph_format.space_after = Pt(6)
-    h1.runs[0].font.color.rgb = PRIMARY_COLOR
-    h1.runs[0].font.name = "Arial"
-    
-    p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.2
-    p.paragraph_format.space_after = Pt(10)
-    p.add_run(
-        "Abaixo constam as perguntas técnicas mais aprofundadas que o avaliador pode formular durante a apresentação do projeto, "
-        "acompanhadas das respostas técnicas ideais baseadas nas decisões de engenharia adotadas no código-fonte:"
-    )
-    
-    # Perguntas e Respostas
-    qa_list = [
-        (
-            "Pergunta 1: Por que você implementou o padrão MVC no cliente (front-end) em vez de escrever um script procedural simples?",
-            "Professor, em projetos de Engenharia de Software, a qualidade do software é medida pela manutenibilidade, testabilidade e baixo acoplamento. "
-            "Ao adotar o MVC no front-end puro, o GameModel encapsula todas as regras matemáticas e de negócio (quem venceu, turno e pontuação) sem saber se a saída é uma página web, um terminal ou um aplicativo mobile. "
-            "A GameView lida exclusivamente com a renderização visual e eventos de DOM. E o GameController atua como ponte. "
-            "Essa divisão permitiu que testássemos o motor do jogo com testes automatizados isolados no Node.js em menos de 10 milissegundos, comprovando a total independência entre a lógica e a interface."
-        ),
-        (
-            "Pergunta 2: Como você pode me provar que o seu Model está realmente desacoplado da View?",
-            "Se abrirmos a classe GameModel no app.js, verificamos que ela não possui nenhuma chamada a document, window, alert, addEventListener ou manipulação de seletores CSS. "
-            "O GameModel apenas recebe números inteiros correspondentes aos índices das casas (0 a 8) e retorna objetos de dados puros contendo o resultado da rodada (por exemplo: { success: true, isWin: true, winner: 'X', winningCombo: [0, 1, 2] }). "
-            "Se trocássemos todo o HTML por uma interface em Canvas 2D ou WebGL, o GameModel não precisaria sofrer nenhuma alteração de código."
-        ),
-        (
-            "Pergunta 3: Por que você utilizou elementos <button> para as casas do tabuleiro em vez de simples <div> com evento de clique?",
-            "Essa escolha técnica materializa diretamente os requisitos de Acessibilidade (RNF05 e WCAG 2.1 AA). "
-            "A tag <button> é um elemento interativo nativo do HTML5. Ela oferece suporte automático e embutido de fábrica para navegação por teclado (foco via Tab, acionamento por Enter e Espaço) e identificação semântica para softwares de tecnologia assistiva (leitores de tela como NVDA e TalkBack). "
-            "Se usássemos <div>, seríamos obrigados a aplicar tabindex='0', role='button' e criar listeners artificiais para teclas de teclado, gerando código desnecessário e propenso a falhas de usabilidade."
-        ),
-        (
-            "Pergunta 4: Como você evitou vulnerabilidades de segurança e garantiu a nota máxima no critério de Qualidade do Código?",
-            "A rubrica de avaliação penaliza o uso de práticas inseguras como eval() e innerHTML. "
-            "Em nossa implementação, 100% da injeção de conteúdo visual é realizada via a propriedade textContent e via métodos seguros do DOM (como setAttribute, classList.add e classList.remove). "
-            "Isso erradica qualquer possibilidade de vulnerabilidades como DOM-based Cross-Site Scripting (XSS) e melhora a taxa de quadros (performance de renderização), pois o navegador não precisa reanalisar a sintaxe HTML do documento a cada jogada."
-        ),
-        (
-            "Pergunta 5: Como funciona o algoritmo de checagem de vitória no GameModel? Ele é eficiente?",
-            "O tabuleiro do Jogo da Velha possui dimensão fixa de 3x3 (9 células), o que gera exatamente 8 combinações vitoriosas possíveis (3 linhas horizontais, 3 colunas verticais e 2 diagonais). "
-            "Em vez de percorrer matrizes bidimensionais com laços for aninhados complexos a cada jogada, pré-calculamos essas 8 trincas em uma constante estática GameModel.WINNING_COMBINATIONS. "
-            "A cada jogada válida, o método checkWin() realiza no máximo 8 comparações síncronas indexadas diretamente no array unidimensional, resultando em complexidade de tempo O(1) e latência de execução inferior a 1 milissegundo, muito abaixo do teto de 50ms estipulado no RNF03."
-        ),
-        (
-            "Pergunta 6: Como você tratou a tentativa de clicar em uma casa já ocupada (RF04 e RN02)?",
-            "O GameModel intercepta imediatamente se board[index] !== null e retorna { success: false, reason: 'OCCUPIED' }. "
-            "O GameController recebe essa resposta e não altera o turno do jogador. Em seguida, aciona o método triggerInvalidFeedback(index) na GameView. "
-            "A View adiciona uma classe CSS 'shake' que executa uma animação suave de tremor lateral por 400ms e, simultaneamente, dispara um tom sutil na frequência de 180Hz usando a Web Audio API nativa do navegador, garantindo feedback sensorial completo sem travar a interface."
-        ),
-        (
-            "Pergunta 7: Como foi implementado o diálogo de confirmação para zerar o placar (RF08 e RN07)?",
-            "Utilizamos a tag nativa <dialog> do HTML5 combinada com a API showModal() e close(). "
-            "Ao acionar o botão 'Zerar Placar', o diálogo abre bloqueando a interação com a página de fundo (com um backdrop escurecido via CSS ::backdrop) e retendo o foco do teclado de forma acessível. "
-            "Somente ao clicar no botão 'Sim, Zerar Placar' é que o Controller comanda a reinicialização dos dados no Model e a limpeza do placar na View."
-        ),
-        (
-            "Pergunta 8: Como o projeto garante que pessoas com deficiência visual possam jogar?",
-            "Acessibilidade foi tratada como requisito arquitetural de primeira classe: "
-            "1. Todas as casas possuem o atributo dinâmico aria-label, que informa a coordenada e o estado (ex: 'Linha 2, Coluna 2: Jogador X' ou 'Linha 1, Coluna 3, vazia'); "
-            "2. O banner central possui role='status' e aria-live='polite', garantindo que anúncios de mudança de turno, empates ou vitórias sejam lidos automaticamente pelo sintetizador de voz; "
-            "3. As cores de X (#1d4ed8) e O (#b91c1c) possuem razão de contraste superior a 4.5:1 em relação ao fundo, atendendo ao critério WCAG 2.1 AA."
-        ),
-        (
-            "Pergunta 9: O que acontece se o usuário clicar no botão 'Nova Partida'? O placar é perdido?",
-            "Não. Conforme a regra de negócio RN06 e o requisito RF06, o botão 'Nova Partida' aciona o método resetBoard() do Model, que limpa apenas as 9 casas do tabuleiro, define o Jogador X como o primeiro a jogar novamente (RN01) e desbloqueia o jogo. "
-            "Os totais de vitórias de X, vitórias de O e empates permanecem rigorosamente intactos no objeto scores."
-        ),
-        (
-            "Pergunta 10: Como foi garantido que o projeto funcione no computador da faculdade sem internet e no GitHub Pages?",
-            "Todos os links entre index.html, styles.css e app.js utilizam caminhos relativos (sem barras absolutas ou protocolos http). "
-            "Não utilizamos CDNs para fontes nem ícones externos (os ícones dos botões foram embutidos diretamente em vetores SVG nativos inline). "
-            "Assim, a aplicação é 100% autônoma e executável tanto via duplo clique local (file:///) quanto hospedada na nuvem do GitHub Pages."
-        )
-    ]
-    
-    for title, ans in qa_list:
-        create_callout_box(doc, title, ans)
-        
-    doc.add_page_break()
-    
-    # =========================================================================
-    # SEÇÃO 5: MATRIZ DE RASTREABILIDADE DE TESTES
-    # =========================================================================
-    h1 = doc.add_heading("5. Matriz de Homologação de Casos de Teste (CT01 a CT10)", level=1)
-    h1.paragraph_format.space_before = Pt(12)
-    h1.paragraph_format.space_after = Pt(6)
-    h1.runs[0].font.color.rgb = PRIMARY_COLOR
-    h1.runs[0].font.name = "Arial"
-    
-    p = doc.add_paragraph()
-    p.paragraph_format.line_spacing = 1.2
-    p.paragraph_format.space_after = Pt(8)
-    p.add_run(
-        "A tabela a seguir demonstra a conformidade de todos os 10 casos de teste homologados no desenvolvimento:"
-    )
-    
-    tbl_ct = doc.add_table(rows=11, cols=4)
-    tbl_ct.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl_ct.autofit = False
-    
-    ct_headers = ["ID", "Cenário de Teste", "Comportamento Esperado", "Status"]
-    for j, text in enumerate(ct_headers):
-        cell = tbl_ct.cell(0, j)
-        set_cell_background(cell, "1D4ED8")
-        set_cell_margins(cell, 80, 80, 100, 100)
-        p_h = cell.paragraphs[0]
-        r_h = p_h.add_run(text)
-        r_h.bold = True
-        r_h.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        r_h.font.size = Pt(9)
-        
-    ct_rows = [
-        ("CT01", "Vitória por Linha", "X marca linha 1 (0, 1, 2). Vitória declarada, 3 casas em verde, +1 no placar de X.", "Aprovado"),
-        ("CT02", "Vitória por Coluna", "O marca coluna 2 (1, 4, 7). Vitória confirmada com destaque e +1 no placar de O.", "Aprovado"),
-        ("CT03", "Vitória por Diagonal", "X marca diagonal (0, 4, 8). Vitória instantânea com realce e turno bloqueado.", "Aprovado"),
-        ("CT04", "Empate ('Velha')", "9 casas preenchidas sem trinca. Status exibe 'Partida empatada!' e empates +1.", "Aprovado"),
-        ("CT05", "Casa Já Ocupada", "Tentativa de marcar casa preenchida. Alerta de tremor/som acionado, turno mantido.", "Aprovado"),
-        ("CT06", "Tentativa Pós-Fim", "Cliques após vitória ou empate são ignorados; tabuleiro permanece travado.", "Aprovado"),
-        ("CT07", "Nova Partida", "Conclui rodada e clica em Nova Partida. Tabuleiro limpa, X começa, placar mantido.", "Aprovado"),
-        ("CT08", "Zerar Placar", "Clica em Zerar Placar e confirma no modal. Placar volta a zero e jogo reinicia.", "Aprovado"),
-        ("CT09", "Navegação por Teclado", "Navegação usando Tab e marcação com Enter/Espaço com contorno visual nítido.", "Aprovado"),
-        ("CT10", "Responsividade (360px a 1440px)", "Redimensionamento da janela sem quebra de layout ou barra de rolagem horizontal.", "Aprovado")
-    ]
-    
-    ct_widths = [Inches(0.8), Inches(1.8), Inches(3.0), Inches(0.9)]
-    for i, row in enumerate(ct_rows, start=1):
-        for j, text in enumerate(row):
-            cell = tbl_ct.cell(i, j)
-            cell.width = ct_widths[j]
-            set_cell_background(cell, "F8FAFC" if i % 2 == 1 else "FFFFFF")
-            set_cell_margins(cell, 60, 60, 80, 80)
-            p_c = cell.paragraphs[0]
-            r_c = p_c.add_run(text)
-            r_c.font.size = Pt(8.5)
-            if j == 0 or j == 3:
-                r_c.bold = True
-                if j == 3:
-                    r_c.font.color.rgb = RGBColor(0x15, 0x80, 0x3D) # Verde
-                    
-    # Conclusão
-    p_end = doc.add_paragraph()
-    p_end.paragraph_format.space_before = Pt(16)
-    p_end.paragraph_format.line_spacing = 1.2
-    r_end = p_end.add_run(
-        "Conclusão: O projeto atende integralmente à totalidade dos requisitos funcionais, não funcionais e regras de negócio "
-        "estipulados no estudo de caso, alcançando nota máxima na rubrica pedagógica de Engenharia de Software."
-    )
-    r_end.font.name = "Arial"
-    r_end.font.size = Pt(10)
-    r_end.font.italic = True
-    r_end.font.color.rgb = MUTED_COLOR
-    
-    doc.save(output_path)
-    print(f"Documento salvo com sucesso em: {output_path}")
+    doc = Document()
+    sec = doc.sections[0]
+    sec.page_width, sec.page_height = Cm(21), Cm(29.7)
+    sec.top_margin = sec.bottom_margin = Cm(1.8)
+    sec.left_margin = sec.right_margin = Cm(2)
+    for name, size in [('Normal', 10), ('Title', 23), ('Subtitle', 12), ('Heading 1', 16), ('Heading 2', 11)]:
+        style = doc.styles[name]
+        style.font.name = 'Arial'
+        style.font.size = Pt(size)
+        style.font.color.rgb = RGBColor(0, 0, 0)
+        for border in list(style._element.iter(qn('w:pBdr'))):
+            border.getparent().remove(border)
+        for fonts in style._element.iter(qn('w:rFonts')):
+            for key in list(fonts.attrib):
+                if 'Theme' in key or 'theme' in key:
+                    del fonts.attrib[key]
+    fmt = doc.styles['Normal'].paragraph_format
+    fmt.line_spacing = 1.08
+    fmt.space_after = Pt(6)
+    for name in ['Heading 1', 'Heading 2']:
+        doc.styles[name].paragraph_format.space_before = Pt(10)
+        doc.styles[name].paragraph_format.space_after = Pt(6)
+    doc.core_properties.title = 'Documentação técnica do Duelo da Velha'
+    doc.core_properties.subject = 'Jogo local com três vidas e arquitetura MVC'
 
-if __name__ == "__main__":
-    out_dir = r"C:\Users\NATAN\.gemini\antigravity\scratch\jogo-da-velha-mvc"
-    file_name = "Documentacao_Tecnica_Jogo_da_Velha_MVC.docx"
-    full_path = os.path.join(out_dir, file_name)
-    build_document(full_path)
+    def p(text):
+        doc.add_paragraph(text)
+
+    def h(text, level=2):
+        doc.add_heading(text, level)
+
+    def page(title):
+        doc.add_page_break()
+        h(title, 1)
+
+    def table(headers, rows, widths):
+        widths = [width * 0.94 for width in widths]
+        t = doc.add_table(rows=1, cols=len(headers))
+        t.alignment = WD_TABLE_ALIGNMENT.CENTER
+        t.autofit = False
+        for column, width in zip(t.columns, widths):
+            column.width = Cm(width)
+        for cell, text in zip(t.rows[0].cells, headers):
+            cell.text = text
+            for run in cell.paragraphs[0].runs:
+                run.bold = True
+        t.rows[0]._tr.get_or_add_trPr().append(OxmlElement('w:tblHeader'))
+        for row in rows:
+            for cell, text in zip(t.add_row().cells, row):
+                cell.text = text
+        for i, row in enumerate(t.rows):
+            row._tr.get_or_add_trPr().append(OxmlElement('w:cantSplit'))
+            for j, cell in enumerate(row.cells):
+                cell.width = Cm(widths[j])
+                cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+                tcpr = cell._tc.get_or_add_tcPr()
+                shd = OxmlElement('w:shd')
+                shd.set(qn('w:fill'), 'E8EEF5' if i == 0 else 'FFFFFF')
+                tcpr.append(shd)
+                borders = OxmlElement('w:tcBorders')
+                for edge in ['top', 'left', 'bottom', 'right']:
+                    el = OxmlElement('w:' + edge)
+                    for key, value in [('val', 'single'), ('sz', '4'), ('color', 'D9D9D9')]:
+                        el.set(qn('w:' + key), value)
+                    borders.append(el)
+                tcpr.append(borders)
+                mar = OxmlElement('w:tcMar')
+                for edge in ['top', 'left', 'bottom', 'right']:
+                    el = OxmlElement('w:' + edge)
+                    el.set(qn('w:w'), '90')
+                    el.set(qn('w:type'), 'dxa')
+                    mar.append(el)
+                tcpr.append(mar)
+                for para in cell.paragraphs:
+                    para.paragraph_format.space_after = Pt(2)
+                    para.paragraph_format.space_before = Pt(2)
+                    for run in para.runs:
+                        run.font.size = Pt(9)
+        doc.add_paragraph().paragraph_format.space_after = Pt(0)
+
+    doc.add_paragraph('Documentação técnica do Duelo da Velha', 'Title')
+    doc.add_paragraph('Jogo local com três vidas e arquitetura MVC', 'Subtitle')
+    p('Atualização de 8 de novembro de 2026')
+    p('Este documento descreve as regras, a organização do código e a execução da versão atual. Cada partida de jogo da velha é uma rodada de um duelo maior. As derrotas desenham um personagem de forca; quem perde as três vidas perde o duelo.')
+    h('1 Escopo e regras do duelo', 1)
+    p('Há dois modos locais: duas pessoas no mesmo dispositivo ou uma pessoa contra o bot. Não há multiplayer online, contas de jogadores, comunicação entre dispositivos nem adivinhação de palavras. A forca representa as vidas perdidas.')
+    p('Cada participante mantém seu símbolo durante o duelo. X inicia a primeira rodada. Depois, quem começa alterna, inclusive após empates. No modo contra o computador, o bot joga com O e inicia as rodadas pares.')
+    table(['Derrotas', 'Desenho acrescentado', 'Vidas restantes'], [
+        ['0', 'Apenas a estrutura da forca', '3'], ['1', 'Cabeça', '2'],
+        ['2', 'Tronco e os dois braços', '1'], ['3', 'As duas pernas', '0 e fim do duelo'],
+    ], [2.2, 10.1, 4.7])
+    p('Uma vitória no tabuleiro soma um ponto ao vencedor e retira uma vida do adversário. Um empate soma ao contador de empates, sem retirar vidas. Depois do resultado, as casas ficam bloqueadas. Cliques adicionais não descontam novas vidas.')
+    h('Diferença entre rodada e duelo')
+    p('Rodada é uma disputa no tabuleiro de nove casas. Duelo é a sequência de rodadas que compartilham vidas e placar. O placar conta vitórias de rodadas e empates do duelo atual, sem histórico de duelos vencidos.')
+
+    page('2 Requisitos e controles')
+    table(['ID', 'Requisito funcional atual'], [
+        ['RF01', 'Exibir tabuleiro 3 por 3 e aceitar jogadas em casas vazias no turno correto.'],
+        ['RF02', 'Detectar vitória nas oito combinações possíveis e empate sem combinação vencedora.'],
+        ['RF03', 'Selecionar dois jogadores locais ou jogador contra bot. Trocar o modo reinicia o duelo.'],
+        ['RF04', 'Oferecer Fácil, Médio e Difícil para o bot. Trocar a dificuldade reinicia o duelo.'],
+        ['RF05', 'Permitir nomes humanos de até 24 caracteres e manter Bot como nome do computador.'],
+        ['RF06', 'Exibir duas forcas, vidas individuais, rodada, placar e mensagens de turno e resultado.'],
+        ['RF07', 'Liberar Próxima rodada após vitória ou empate, preservando vidas e placar.'],
+        ['RF08', 'Encerrar o duelo na terceira derrota e oferecer Jogar revanche.'],
+        ['RF09', 'Oferecer Novo duelo com confirmação e reinicializar vidas, placar, rodada e tabuleiro.'],
+        ['RF10', 'Rejeitar casas ocupadas, índices inválidos e jogadas após o resultado.'],
+    ], [1.8, 15.2])
+    h('Reinicializações')
+    p('Próxima rodada fica desabilitado durante a rodada. Depois do resultado, limpa o tabuleiro e alterna o participante inicial. Se for a vez inicial do bot, a jogada é agendada automaticamente.')
+    p('Jogar revanche aparece ao fim do duelo. Reinicia vidas e placar e retorna à rodada 1 com X. Novo duelo abre um diálogo: Cancelar preserva o estado; confirmar inicia outro duelo. Nomes, modo e dificuldade são mantidos nessas reinicializações.')
+    p('Trocar o modo ou a dificuldade reinicia diretamente o duelo, conforme aviso da interface, sem usar o diálogo. Alterar nomes não reinicia a partida.')
+    h('Dados e apresentação')
+    p('O estado fica na memória da página. Recarregar restaura nomes padrão, três vidas, modo contra bot e dificuldade média. Foram removidos os três selos acadêmicos do cabeçalho e o quadro pedagógico do rodapé. O título e as instruções do jogo permanecem.')
+
+    page('3 Arquitetura e estado')
+    p('O jogo usa HTML, CSS e JavaScript sem frameworks ou etapa de build. As classes MVC ficam em app.js. O evento DOMContentLoaded cria modelo, visão e controlador; window.gameApp expõe o controlador para inspeção.')
+    table(['Camada', 'Responsabilidade'], [
+        ['GameModel', 'Mantém estado, valida jogadas, aplica as regras de rodada e duelo e calcula a jogada do bot. Não manipula o DOM.'],
+        ['GameView', 'Apresenta tabuleiro, forcas SVG, nomes, vidas e resultados; liga eventos da interface e controla o diálogo e o feedback de casa ocupada.'],
+        ['GameController', 'Recebe ações, chama o modelo, atualiza a visão e agenda ou cancela a jogada do bot.'],
+    ], [3.2, 13.8])
+    h('Estado da rodada')
+    p('board contém nove posições com null, X ou O. currentPlayer identifica o turno; isGameOver bloqueia a rodada concluída; winner contém X, O, draw ou null; winningCombo registra os índices vencedores. checkWin verifica as oito trincas de WINNING_COMBINATIONS.')
+    h('Estado do duelo')
+    p('lives inicia com X: 3 e O: 3; round com 1; startingPlayer com X; duelWinner com null. scores guarda X, O e draws. gameMode aceita bot ou pvp, botPlayer é O, botDifficulty inicia em medium e playerNames guarda os nomes humanos separados dos símbolos.')
+    h('Transições principais')
+    p('makeMove valida a jogada e verifica primeiro vitória, depois empate. Na vitória, aumenta o placar, desconta uma vida de quem perdeu e define duelWinner se as vidas chegaram a zero. Sem resultado, alterna o turno.')
+    p('nextRound recusa o avanço antes do resultado ou depois do fim do duelo. Caso permitido, incrementa round, alterna startingPlayer e limpa o tabuleiro por resetBoard. resetDuel restaura vidas, rodada e placar sem alterar nomes, modo ou dificuldade.')
+    p('getPlayerName resolve o nome exibido; setPlayerName valida o símbolo, remove espaços nas extremidades e limita o texto. renderDuel atualiza os cartões, o placar e os estágios SVG conforme as vidas.')
+
+    page('4 Bot nomes e interface')
+    table(['Opção', 'Valor interno', 'Escolha da jogada'], [
+        ['Fácil', 'easy', 'Escolhe aleatoriamente uma casa vazia.'],
+        ['Médio', 'medium', 'A cada turno, 50% de chance de jogar aleatoriamente e 50% de usar Minimax. É o padrão inicial.'],
+        ['Difícil', 'hard', 'Usa Minimax para escolher a melhor jogada.'],
+    ], [2.5, 3, 11.5])
+    p('Minimax simula os dois participantes até vitória, derrota ou empate. A pontuação é 10 menos a profundidade para vitória do bot, profundidade menos 10 para derrota e zero para empate. O nível difícil procura evitar derrotas. Empates sucessivos podem prolongar indefinidamente o duelo.')
+    p('O controlador agenda o bot com atraso de aproximadamente 400 ms e ignora cliques humanos durante esse turno. cancelBotTurn usa clearTimeout antes de reiniciar ou trocar configurações. A ação agendada também verifica modo, turno e encerramento antes de jogar.')
+    h('Nomes dos participantes')
+    p('Contra o bot, apenas o nome de X é editável e o computador mantém Bot. Entre pessoas, X e O têm campos próprios. Os nomes aceitam até 24 caracteres; se vazios ou só com espaços, usam Jogador X ou Jogador O.')
+    p('A digitação atualiza cartões, placar e mensagens, inclusive após um resultado. Não altera vidas nem reagenda o bot. O nome humano de O é preservado entre modos, mas fica oculto quando O representa o computador. Não há validação para nomes iguais.')
+    h('Forca e saída textual')
+    p('Os grupos SVG usam data-stage de 1 a 3. A visibilidade depende de 3 menos as vidas restantes. O SVG é decorativo para leitores de tela; o texto de vidas comunica o estado usando aria-live. Os cartões também identificam X ou O.')
+    p('Nomes e mensagens são inseridos por textContent, sem interpretar o texto digitado como HTML. Não há eval ou innerHTML no código. Essa proteção da saída textual não é uma garantia geral de ausência de vulnerabilidades.')
+    h('Acessibilidade implementada')
+    p('As casas são botões nativos com foco visível, rótulos de linha e coluna e acionamento por teclado. O status usa role="status" e aria-live="polite". CSS Grid e Flexbox adaptam o layout. Esses recursos não equivalem a uma certificação WCAG 2.1 AA, que exige auditoria específica.')
+
+    page('5 Execução e validação')
+    table(['Arquivo', 'Função'], [
+        ['index.html', 'Estrutura da tela, controles, diálogo e SVGs.'],
+        ['styles.css', 'Layout responsivo, cores, foco e estados visuais.'],
+        ['app.js', 'Modelo, visão, controlador e inicialização.'],
+        ['tests/game.test.cjs', 'Quatro testes automatizados executados com Node.js.'],
+        ['gerar_documento.py', 'Gera este Word; requer python-docx somente para autoria.'],
+        ['README.md', 'Regras e execução, com a documentação antiga identificada como histórica.'],
+    ], [5.4, 11.6])
+    h('Como executar')
+    p('Abra index.html diretamente no navegador. Para usar um servidor local, execute python -m http.server 8080 --bind 127.0.0.1 na pasta do projeto e acesse http://127.0.0.1:8080. Esse comando atende apenas a máquina local. Após alterações, atualize com Ctrl + F5.')
+    p('O jogo também é compatível com hospedagem estática, sem adicionar multiplayer online. Não exige Node.js nem Python para jogar. Essas ferramentas servem aos testes, à geração do documento e ao servidor local opcional.')
+    h('Verificações executadas nesta evolução')
+    table(['Verificação', 'Cobertura observada'], [
+        ['Testes automatizados', 'node --test tests/game.test.cjs: três derrotas e bloqueio; empate e alternância; vitória de O e índices inválidos; jogadas legais nas dificuldades e vitória imediata com Minimax.'],
+        ['Fluxos no navegador', 'Estágios do desenho, PvP local, bot, cancelamento pendente, início pelo bot, dificuldade, confirmação de reinício e revanche.'],
+        ['Nomes e interface', 'Nomes nos cartões e resultados, Bot fixo, preservação de O entre modos, nome vazio e texto semelhante a HTML. Remoção dos selos e rodapé com as nove casas preservadas.'],
+        ['Layout', 'Inspeção da interface e verificação de ausência de rolagem horizontal na largura de 375 px durante a evolução do duelo.'],
+    ], [4.6, 12.4])
+    p('Os quatro testes automatizados passaram na implementação. As verificações de navegador foram complementares e não compõem uma suíte versionada. Não foram medidos tempos máximos de resposta nem realizada auditoria completa de acessibilidade ou de todos os navegadores.')
+
+    page('6 Guia de apresentação e manutenção')
+    h('Por que manter MVC')
+    p('A separação permite testar as regras sem abrir a interface. GameModel recebe ações e retorna dados; GameView apresenta o estado e fornece eventos; GameController coordena o fluxo. A evolução para vidas e múltiplas rodadas reaproveitou o tabuleiro e o Minimax.')
+    h('Como evitar o desconto duplicado de vidas')
+    p('O resultado é aplicado na jogada vencedora. isGameOver passa a true e impede novas jogadas no modelo; a visão desabilita as casas. Assim, cliques posteriores não descontam outra vida.')
+    h('Como distinguir os vencedores')
+    p('winner identifica o resultado do tabuleiro; duelWinner só recebe um símbolo quando o adversário chega a zero vidas. O controlador prioriza a mensagem de vencedor do duelo e muda o botão para Jogar revanche.')
+    h('Por que cancelar o temporizador')
+    p('O atraso do bot é assíncrono. Uma ação programada antes de um reinício poderia marcar uma casa no estado seguinte. O cancelamento elimina essa ação pendente e a verificação de modo e turno reforça o controle.')
+    h('O que significa dificuldade média')
+    p('A escolha entre aleatoriedade e Minimax ocorre em cada jogada. Isso não garante metade das partidas ganhas e não representa uma estratégia intermediária fixa. O resultado depende do sorteio e das jogadas humanas.')
+    h('Como regenerar o documento')
+    p('No ambiente de autoria com python-docx, execute python gerar_documento.py. O script sobrescreve Documentacao_Tecnica_Jogo_da_Velha_MVC.docx na pasta do repositório. Revise o conteúdo e as páginas renderizadas antes de publicar novas versões.')
+    h('Limites e referência de implementação')
+    p('A sessão não persiste após recarregar. Os nomes podem ser iguais e mudar durante a rodada. Não há cadastro, autenticação ou limite de empates consecutivos. Mudanças futuras em vidas, transições, bot ou interface devem atualizar este documento e seu gerador.')
+    p('Referência: natancardosoo/jogo-da-velha-mvc, arquivos app.js, index.html, styles.css e tests/game.test.cjs. Esta revisão incorpora três vidas, nomes humanos, dificuldades simplificadas e remoção dos elementos pedagógicos da tela.')
+    doc.save(output_path)
+
+
+if __name__ == '__main__':
+    target = Path(__file__).resolve().parent / 'Documentacao_Tecnica_Jogo_da_Velha_MVC.docx'
+    build_document(target)
+    print(target)

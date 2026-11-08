@@ -562,3 +562,45 @@ body {
     flex-direction: column;
   }
 }
+
+/* ==========================================================================
+   Seletor de Modo de Jogo
+   ========================================================================== */
+   .mode-section {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .mode-toggle {
+    display: flex;
+    background-color: var(--color-surface-hover);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    gap: 4px;
+    width: 100%;
+    max-width: 380px;
+  }
+  
+  .btn-mode {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .btn-mode:hover {
+    color: var(--color-text-main);
+  }
+  
+  .btn-mode.active {
+    background-color: var(--color-surface);
+    color: var(--color-player-x);
+    box-shadow: var(--shadow-sm);
+  }

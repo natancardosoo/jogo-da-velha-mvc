@@ -605,6 +605,12 @@ body {
     box-shadow: var(--shadow-sm);
   }
 /* Duelo local com três vidas */
+.player-names { display: flex; flex-wrap: wrap; gap: 1rem; }
+.player-names > div { flex: 1 1 180px; min-width: 0; }
+.player-names > [hidden] { display: none; }
+.player-names label { display: block; font-weight: 600; margin-bottom: .4rem; }
+.player-names input { width: 100%; font: inherit; padding: .65rem; border: 1px solid var(--color-border); border-radius: 8px; }
+.hangman-card h2, .score-label { overflow-wrap: anywhere; }
 .duel-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: 100%; }
 .hangman-card { text-align: center; border: 1px solid currentColor; border-radius: 16px; padding: 1rem; }
 .hangman-x { color: var(--color-player-x); background: var(--color-player-x-bg); }

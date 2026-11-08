@@ -29,6 +29,7 @@ class GameModel {
     this.gameMode = 'bot';        // 'bot' (Humano vs Bot) ou 'pvp' (Humano vs Humano)
     this.botDifficulty = 'medium';  // 'easy', 'medium', 'hard' (Minimax)
     this.botPlayer = 'O';         // Bot joga como 'O'
+    this.playerNames = { X: '', O: '' };
 
     this.lives = { X: 3, O: 3 };
     this.round = 1;
@@ -40,6 +41,17 @@ class GameModel {
       O: 0,
       draws: 0
     };
+  }
+
+  getPlayerName(player) {
+    if (this.gameMode === 'bot' && player === this.botPlayer) return 'Bot';
+    return this.playerNames[player] || `Jogador ${player}`;
+  }
+
+  setPlayerName(player, name) {
+    if (!['X', 'O'].includes(player)) return;
+    if (this.gameMode === 'bot' && player === this.botPlayer) return;
+    this.playerNames[player] = name.trim().slice(0, 24);
   }
 
   makeMove(index) {
@@ -237,6 +249,7 @@ class GameView {
 
     this.difficulty = document.getElementById('botDifficulty');
     this.difficultySection = document.getElementById('difficultySection');
+    this.playerOField = document.getElementById('playerOField');
     this.audioContext = null;
   }
 
@@ -298,8 +311,8 @@ class GameView {
   renderDuel(model) {
     document.getElementById('roundNumber').textContent = `Rodada ${model.round}`;
     for (const player of ['X', 'O']) {
-      document.getElementById(`name${player}`).textContent =
-        model.gameMode === 'bot' && player === model.botPlayer ? 'Bot (O)' : `Jogador ${player}`;
+      document.getElementById(`name${player}`).textContent = `${model.getPlayerName(player)} (${player})`;
+      document.querySelector(`#cardScore${player} .score-label`).textContent = `Vitórias ${model.getPlayerName(player)}`;
       document.getElementById(`lives${player}`).textContent = `${model.lives[player]} de 3 vidas`;
       const losses = 3 - model.lives[player];
       document.querySelectorAll(`#hangman${player} [data-stage]`).forEach(part => {
@@ -307,6 +320,8 @@ class GameView {
       });
     }
     this.difficultySection.hidden = model.gameMode !== 'bot';
+    this.playerOField.hidden = model.gameMode === 'bot';
+    document.getElementById('playerNameO').disabled = model.gameMode === 'bot';
     this.difficulty.value = model.botDifficulty;
     this.btnNewGame.textContent = model.duelWinner ? 'Jogar revanche' : 'Próxima rodada';
     this.btnNewGame.disabled = !model.isGameOver;
@@ -316,6 +331,14 @@ class GameView {
 
   bindDifficultyChange(handler) {
     this.difficulty.addEventListener('change', () => handler(this.difficulty.value));
+  }
+
+  bindNameChange(handler) {
+    for (const player of ['X', 'O']) {
+      document.getElementById(`playerName${player}`).addEventListener('input', event => {
+        handler(player, event.target.value);
+      });
+    }
   }
 
   renderScores(scores) {
@@ -444,6 +467,11 @@ class GameController {
     this.view.bindModeChange(this.handleModeChange.bind(this));
 
     this.view.bindDifficultyChange(this.handleDifficultyChange.bind(this));
+    this.view.bindNameChange((player, name) => {
+      this.model.setPlayerName(player, name);
+      this.render();
+      this.renderResult(false);
+    });
     this.init();
   }
 
@@ -454,8 +482,7 @@ class GameController {
   }
 
   playerName(player) {
-    return this.model.gameMode === 'bot' && player === this.model.botPlayer
-      ? 'Bot (O)' : `Jogador ${player}`;
+    return this.model.getPlayerName(player);
   }
 
   render() {
@@ -463,11 +490,11 @@ class GameController {
     this.view.renderDuel(this.model);
   }
 
-  updateTurn() {
+  updateTurn(scheduleBot = true) {
     const botTurn = this.model.gameMode === 'bot' && this.model.currentPlayer === this.model.botPlayer;
     this.view.renderStatus(botTurn ? 'Bot está pensando...' : `Vez do ${this.playerName(this.model.currentPlayer)}`,
       this.model.currentPlayer === 'X' ? 'status-x' : 'status-o');
-    if (botTurn) this.triggerBotTurn();
+    if (botTurn && scheduleBot) this.triggerBotTurn();
   }
 
   handleCellClick(index) {
@@ -482,15 +509,19 @@ class GameController {
       return;
     }
     this.render();
+    this.renderResult();
+  }
+
+  renderResult(scheduleBot = true) {
     if (this.model.duelWinner) {
       this.view.renderStatus(`${this.playerName(this.model.duelWinner)} venceu o duelo!`, 'status-win');
-    } else if (result.isWin) {
-      const loser = result.winner === 'X' ? 'O' : 'X';
-      this.view.renderStatus(`${this.playerName(result.winner)} venceu a rodada! ${this.playerName(loser)} perdeu uma vida.`, 'status-win');
-    } else if (result.isDraw) {
+    } else if (this.model.winner && this.model.winner !== 'draw') {
+      const loser = this.model.winner === 'X' ? 'O' : 'X';
+      this.view.renderStatus(`${this.playerName(this.model.winner)} venceu a rodada! ${this.playerName(loser)} perdeu uma vida.`, 'status-win');
+    } else if (this.model.winner === 'draw') {
       this.view.renderStatus('Empate! Ninguém perdeu vida.', 'status-draw');
     } else {
-      this.updateTurn();
+      this.updateTurn(scheduleBot);
     }
   }
 

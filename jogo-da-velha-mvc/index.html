@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Duelo da Velha — Lousa Viva: Jogo da Velha com estética orgânica de lousa escolar, acessibilidade WCAG 2.1 AA e heurísticas de Nielsen.">
+  <title>Duelo da Velha — Lousa Viva</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Gloria+Hallelujah&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- Manchas sutis de poeira de giz (chalk dust smudges) na lousa -->
+  <div class="chalk-dust-overlay" aria-hidden="true"></div>
+
+  <!-- Filtro SVG para Textura Porosa de Giz -->
+  <svg width="0" height="0" style="position: absolute; pointer-events: none;" aria-hidden="true">
+    <filter id="chalkTexture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.6" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  <div class="page-wrapper" role="region" aria-label="Quadro-negro do Duelo da Velha">
+    <!-- Cabeçalho Principal com Título Manuscrito Real (Sem #) e Centralização por CSS Grid -->
+    <header class="main-header" role="banner">
+      <div class="header-top">
+        <div class="header-left-space" aria-hidden="true"></div>
+        <div class="header-center-group">
+          <div class="title-container">
+            <h1 class="main-title">Duelo da Velha</h1>
+            <svg class="chalk-underline" viewBox="0 0 200 10" width="160" height="8" fill="none" stroke="#f4f4f0" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M 3 5 Q 50 1 100 6 Q 150 2 197 5"></path>
+            </svg>
+          </div>
+          <span class="badge badge-accent" aria-label="Modo 3 Vidas">3 Vidas</span>
+        </div>
+        <div class="header-actions">
+          <button type="button" id="btnOpenSettings" class="btn-icon-action" aria-label="Configurações do Jogo" title="Configurações">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+          <button type="button" id="btnOpenHelp" class="btn-icon-action" aria-label="Como Jogar / Regras" title="Como Jogar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Área Central da Aplicação -->
+    <main class="game-container" id="gameApp" role="main">
+      
+      <!-- Linha Superior da Arena: Rodada e Placar como Tabela de Giz Riscada à Mão -->
+      <div class="arena-header-bar">
+        <div class="round-badge" id="roundNumber" aria-live="polite">Rodada 1</div>
+        
+        <!-- Placar da sessão -->
+        <section class="scoreboard chalkboard-table" aria-label="Placar da sessão">
+          <div class="score-card score-card-x" id="cardScoreX">
+            <span class="score-label">X</span>
+            <span class="score-value" id="scoreX" aria-live="polite">0</span>
+          </div>
+          <div class="score-divider" aria-hidden="true"></div>
+          <div class="score-card score-card-draw" id="cardScoreDraw">
+            <span class="score-label">EMP</span>
+            <span class="score-value" id="scoreDraw" aria-live="polite">0</span>
+          </div>
+          <div class="score-divider" aria-hidden="true"></div>
+          <div class="score-card score-card-o" id="cardScoreO">
+            <span class="score-label">O</span>
+            <span class="score-value" id="scoreO" aria-live="polite">0</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- Grid Principal do Duelo (Layout Lado a Lado em Desktop) -->
+      <div class="duel-layout">
+        
+        <!-- Card Jogador X com Moldura Orgânica -->
+        <section class="duel-panel" aria-label="Vidas do Jogador X">
+          <article class="hangman-card hangman-organic hangman-x" id="cardPlayerX">
+            <svg class="chalk-scribble-ring" viewBox="0 0 200 80" aria-hidden="true">
+              <path d="M 10 40 Q 50 5 100 40 Q 150 75 190 40 Q 150 75 100 40 Q 50 5 10 40" fill="none" stroke="#ffe66d" stroke-width="2.5" stroke-dasharray="4 3"/>
+            </svg>
+            <div class="player-header-info">
+              <h2 id="nameX">Jogador X</h2>
+              <span class="turn-badge">Sua vez</span>
+            </div>
+            <svg id="hangmanX" viewBox="0 0 180 190" aria-hidden="true" class="hangman">
+              <path d="M15 180 H120 M40 180 V15 H115 V35" class="scaffold"/>
+              <circle data-stage="1" cx="115" cy="55" r="20" style="visibility:hidden"/>
+              <g data-stage="2" style="visibility:hidden"><path d="M115 75 V125 M115 85 L85 110 M115 85 L145 110"/></g>
+              <g data-stage="3" style="visibility:hidden"><path d="M115 125 L90 160 M115 125 L140 160"/></g>
+            </svg>
+            <div class="lives-container">
+              <div class="hearts-row" id="heartsX" aria-hidden="true">
+                <span class="heart active">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+                <span class="heart active">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+                <span class="heart active">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+              </div>
+              <p id="livesX" class="lives" aria-live="polite">3 de 3 vidas</p>
+            </div>
+          </article>
+        </section>
+
+        <!-- Arena Central: Status + Tabuleiro + Controles -->
+        <div class="center-arena">
+          <!-- Banner de Status Dinâmico Escrito na Lousa com Sublinhado de Giz -->
+          <section class="status-section" aria-label="Status do jogo">
+            <div id="gameStatus" class="status-banner status-x" role="status" aria-live="polite">
+              Vez do Jogador X
+              <svg class="status-chalk-underline" viewBox="0 0 250 8" width="100%" height="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M 5 4 Q 80 1 150 5 Q 200 2 245 4"></path>
+              </svg>
+            </div>
+          </section>
+
+          <!-- Tabuleiro Jogo da Velha Clássico (#) em Giz -->
+          <section class="board-section" aria-label="Área do tabuleiro">
+            <div class="board-grid" id="boardGrid" role="grid" aria-label="Tabuleiro do Jogo da Velha com 3 linhas e 3 colunas">
+              <!-- Efeito Apagador / Poeira de Giz para Transição -->
+              <div class="eraser-dust-wipe" aria-hidden="true"></div>
+
+              <!-- Linhas do Tabuleiro # em Giz -->
+              <svg class="chalk-grid-lines" viewBox="0 0 300 300" aria-hidden="true">
+                <path d="M 18 100 Q 150 97 282 101" class="chalk-line"/>
+                <path d="M 18 200 Q 150 203 282 199" class="chalk-line"/>
+                <path d="M 100 18 Q 97 150 101 282" class="chalk-line"/>
+                <path d="M 200 18 Q 203 150 199 282" class="chalk-line"/>
+              </svg>
+
+              <button type="button" class="cell" data-index="0" data-row="1" data-col="1" aria-label="Linha 1, Coluna 1, vazia"></button>
+              <button type="button" class="cell" data-index="1" data-row="1" data-col="2" aria-label="Linha 1, Coluna 2, vazia"></button>
+              <button type="button" class="cell" data-index="2" data-row="1" data-col="3" aria-label="Linha 1, Coluna 3, vazia"></button>
+              <button type="button" class="cell" data-index="3" data-row="2" data-col="1" aria-label="Linha 2, Coluna 1, vazia"></button>
+              <button type="button" class="cell" data-index="4" data-row="2" data-col="2" aria-label="Linha 2, Coluna 2, vazia"></button>
+              <button type="button" class="cell" data-index="5" data-row="2" data-col="3" aria-label="Linha 2, Coluna 3, vazia"></button>
+              <button type="button" class="cell" data-index="6" data-row="3" data-col="1" aria-label="Linha 3, Coluna 1, vazia"></button>
+              <button type="button" class="cell" data-index="7" data-row="3" data-col="2" aria-label="Linha 3, Coluna 2, vazia"></button>
+              <button type="button" class="cell" data-index="8" data-row="3" data-col="3" aria-label="Linha 3, Coluna 3, vazia"></button>
+            </div>
+          </section>
+
+          <!-- Controles de Ação -->
+          <section class="actions-section" aria-label="Controles da partida">
+            <button type="button" id="btnNewGame" class="btn btn-primary" disabled>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              Próxima rodada
+            </button>
+            <button type="button" id="btnResetScores" class="btn btn-outline-danger" aria-label="Iniciar novo duelo com confirmação">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Novo duelo
+            </button>
+          </section>
+        </div>
+
+        <!-- Card Jogador O com Moldura Orgânica -->
+        <section class="duel-panel" aria-label="Vidas do Jogador O">
+          <article class="hangman-card hangman-organic hangman-o" id="cardPlayerO">
+            <svg class="chalk-scribble-ring" viewBox="0 0 200 80" aria-hidden="true">
+              <path d="M 10 40 Q 50 5 100 40 Q 150 75 190 40 Q 150 75 100 40 Q 50 5 10 40" fill="none" stroke="#7bdff2" stroke-width="2.5" stroke-dasharray="4 3"/>
+            </svg>
+            <div class="player-header-info">
+              <h2 id="nameO">Jogador O</h2>
+              <span class="turn-badge">Sua vez</span>
+            </div>
+            <svg id="hangmanO" viewBox="0 0 180 190" aria-hidden="true" class="hangman">
+              <path d="M15 180 H120 M40 180 V15 H115 V35" class="scaffold"/>
+              <circle data-stage="1" cx="115" cy="55" r="20" style="visibility:hidden"/>
+              <g data-stage="2" style="visibility:hidden"><path d="M115 75 V125 M115 85 L85 110 M115 85 L145 110"/></g>
+              <g data-stage="3" style="visibility:hidden"><path d="M115 125 L90 160 M115 125 L140 160"/></g>
+            </svg>
+            <div class="lives-container">
+              <div class="hearts-row" id="heartsO" aria-hidden="true">
+                <span class="heart active">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+                <span class="heart active">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+                <span class="heart active">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+              </div>
+              <p id="livesO" class="lives" aria-live="polite">3 de 3 vidas</p>
+            </div>
+          </article>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Canaleta de Giz e Apagador na Borda Inferior -->
+    <div class="chalk-tray" aria-hidden="true">
+      <div class="eraser">
+        <svg viewBox="0 0 60 25" width="55" height="22" fill="#5c3a21">
+          <rect x="2" y="2" width="56" height="21" rx="3" fill="#b08968" stroke="#3d2311" stroke-width="2"/>
+          <rect x="5" y="8" width="50" height="12" rx="2" fill="#2d2d2d" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="chalk-pieces">
+        <svg viewBox="0 0 30 12" width="28" height="12"><path d="M2 2 Q 15 0 28 3 L 26 10 Q 15 12 4 9 Z" fill="#ffe66d"/></svg>
+        <svg viewBox="0 0 30 12" width="28" height="12"><path d="M2 2 Q 15 0 28 3 L 26 10 Q 15 12 4 9 Z" fill="#7bdff2"/></svg>
+        <svg viewBox="0 0 30 12" width="28" height="12"><path d="M2 2 Q 15 0 28 3 L 26 10 Q 15 12 4 9 Z" fill="#f4f4f0"/></svg>
+      </div>
+    </div>
+
+    <!-- Modal de Configurações -->
+    <dialog id="settingsDialog" class="modal-dialog" aria-labelledby="settingsTitle">
+      <div class="modal-content blackboard-panel">
+        <div class="modal-header">
+          <h2 id="settingsTitle" class="modal-title">⚙️ Configurações do Duelo</h2>
+          <button type="button" id="btnCloseSettings" class="btn-close" aria-label="Fechar configurações">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Modo de Jogo</label>
+            <div class="mode-toggle">
+              <button type="button" id="btnModeBot" class="btn-mode active" aria-pressed="true">Contra Bot (IA)</button>
+              <button type="button" id="btnModePvp" class="btn-mode" aria-pressed="false">Dois Jogadores (PvP)</button>
+            </div>
+          </div>
+
+          <div class="form-group player-names">
+            <div class="input-field-group">
+              <label for="playerNameX">Nome do Jogador X</label>
+              <input id="playerNameX" type="text" maxlength="24" placeholder="Jogador X" autocomplete="off">
+            </div>
+            <div class="input-field-group" id="playerOField" hidden>
+              <label for="playerNameO">Nome do Jogador O</label>
+              <input id="playerNameO" type="text" maxlength="24" placeholder="Jogador O" autocomplete="off" disabled>
+            </div>
+          </div>
+
+          <div class="form-group" id="difficultySection">
+            <label for="botDifficulty">Dificuldade do Bot</label>
+            <select id="botDifficulty" class="select-styled">
+              <option value="easy">Fácil</option>
+              <option value="medium" selected>Médio</option>
+              <option value="hard">Difícil</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btnSaveSettings" class="btn btn-primary">Salvar e Jogar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Modal de Ajuda / Regras -->
+    <dialog id="helpDialog" class="modal-dialog" aria-labelledby="helpTitle">
+      <div class="modal-content blackboard-panel">
+        <div class="modal-header">
+          <h2 id="helpTitle" class="modal-title">❓ Como Jogar o Duelo</h2>
+          <button type="button" id="btnCloseHelp" class="btn-close" aria-label="Fechar ajuda">✕</button>
+        </div>
+        <div class="modal-body">
+          <ul class="rules-list">
+            <li><strong>Dinâmica de Vidas:</strong> Cada derrota desenha uma parte do seu personagem na forca (1ª: cabeça, 2ª: tronco/braços, 3ª: pernas e fim do duelo).</li>
+            <li><strong>Empates:</strong> Empates preservam vidas e alternam quem começa a próxima rodada.</li>
+            <li><strong>Turnos:</strong> O símbolo X sempre começa o duelo (e alterna a cada rodada).</li>
+            <li><strong>Modo Duplo:</strong> Jogue contra a Inteligência Artificial (com 3 níveis de dificuldade) ou contra um amigo no mesmo dispositivo (PvP).</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btnOkHelp" class="btn btn-primary">Entendi</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Modal de Confirmação para Novo Duelo -->
+    <dialog id="confirmDialog" class="modal-dialog confirm-dialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="modal-content blackboard-panel">
+        <div class="dialog-icon" aria-hidden="true">⚠️</div>
+        <h2 id="dialogTitle" class="dialog-title">Iniciar novo duelo?</h2>
+        <p id="dialogDesc" class="dialog-description">
+          As vidas, o placar e a rodada atual serão reiniciados. O modo e a dificuldade serão mantidos.
+        </p>
+        <div class="dialog-actions">
+          <button type="button" id="btnCancelReset" class="btn btn-secondary">Cancelar</button>
+          <button type="button" id="btnConfirmReset" class="btn btn-danger">Sim, novo duelo</button>
+        </div>
+      </div>
+    </dialog>
+
+  </div>
+
+  <!-- Sincronização UI & Tally Marks Generator -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Modais
+      const settingsDialog = document.getElementById('settingsDialog');
+      const helpDialog = document.getElementById('helpDialog');
+      const btnOpenSettings = document.getElementById('btnOpenSettings');
+      const btnCloseSettings = document.getElementById('btnCloseSettings');
+      const btnSaveSettings = document.getElementById('btnSaveSettings');
+      const btnOpenHelp = document.getElementById('btnOpenHelp');
+      const btnCloseHelp = document.getElementById('btnCloseHelp');
+      const btnOkHelp = document.getElementById('btnOkHelp');
+
+      btnOpenSettings?.addEventListener('click', () => settingsDialog?.showModal());
+      btnCloseSettings?.addEventListener('click', () => settingsDialog?.close());
+      btnSaveSettings?.addEventListener('click', () => settingsDialog?.close());
+
+      btnOpenHelp?.addEventListener('click', () => helpDialog?.showModal());
+      btnCloseHelp?.addEventListener('click', () => helpDialog?.close());
+      btnOkHelp?.addEventListener('click', () => helpDialog?.close());
+
+      // Sincronizador de vidas (corações SVG) e turno ativo
+      const gameStatus = document.getElementById('gameStatus');
+      const cardPlayerX = document.getElementById('cardPlayerX');
+      const cardPlayerO = document.getElementById('cardPlayerO');
+      const livesX = document.getElementById('livesX');
+      const livesO = document.getElementById('livesO');
+      const heartsX = document.getElementById('heartsX');
+      const heartsO = document.getElementById('heartsO');
+      const scoreXEl = document.getElementById('scoreX');
+      const scoreOEl = document.getElementById('scoreO');
+
+      const heartSvgActive = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+      const heartSvgInactive = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" opacity="0.3"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+
+      function updateHearts(livesEl, heartsContainer) {
+        if (!livesEl || !heartsContainer) return;
+        const text = livesEl.textContent || '';
+        const match = text.match(/(\d+)/);
+        const count = match ? parseInt(match[1], 10) : 3;
+        const hearts = heartsContainer.querySelectorAll('.heart');
+        hearts.forEach((heart, idx) => {
+          if (idx < count) {
+            heart.classList.add('active');
+            heart.innerHTML = heartSvgActive;
+          } else {
+            heart.classList.remove('active');
+            heart.innerHTML = heartSvgInactive;
+          }
+        });
+      }
+
+      function updateTurnHighlight() {
+        if (!gameStatus) return;
+        const isX = gameStatus.classList.contains('status-x');
+        const isO = gameStatus.classList.contains('status-o');
+        if (isX) {
+          cardPlayerX?.classList.add('active-turn');
+          cardPlayerO?.classList.remove('active-turn');
+        } else if (isO) {
+          cardPlayerO?.classList.add('active-turn');
+          cardPlayerX?.classList.remove('active-turn');
+        } else {
+          cardPlayerX?.classList.remove('active-turn');
+          cardPlayerO?.classList.remove('active-turn');
+        }
+      }
+
+      const observer = new MutationObserver(() => {
+        updateHearts(livesX, heartsX);
+        updateHearts(livesO, heartsO);
+        updateTurnHighlight();
+      });
+
+      if (gameStatus) observer.observe(gameStatus, { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
+      if (livesX) observer.observe(livesX, { childList: true, characterData: true, subtree: true });
+      if (livesO) observer.observe(livesO, { childList: true, characterData: true, subtree: true });
+      if (scoreXEl) observer.observe(scoreXEl, { childList: true, characterData: true, subtree: true });
+      if (scoreOEl) observer.observe(scoreOEl, { childList: true, characterData: true, subtree: true });
+
+      updateHearts(livesX, heartsX);
+      updateHearts(livesO, heartsO);
+      updateTurnHighlight();
+    });
+  </script>
+
+  <!-- Easter Egg Overlay (Fade to Black + YouTube + Controls) -->
+  <div id="easterEggOverlay" class="easter-egg-overlay" hidden aria-hidden="true">
+    <div id="easterEggMessage" class="easter-egg-chalk-msg" aria-live="assertive">Empate até na Morte Súbita?! Você quebrou o sistema...</div>
+    <div id="easterEggVideoContainer" class="easter-egg-video-container" hidden>
+      <iframe id="easterEggIframe" src="" title="Easter Egg YouTube Video" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      <button type="button" id="btnWakeUp" class="btn-easter-egg-wakeup">▶ Acordar...</button>
+      <button type="button" id="btnExitEasterEgg" class="btn-easter-egg-exit" aria-label="Sair do easter egg e iniciar novo duelo">Voltar ao Duelo</button>
+    </div>
+  </div>
+</body>
+</html>

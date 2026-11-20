@@ -1,0 +1,1431 @@
+/* ==========================================================================
+   Duelo da Velha — Estética de Lousa Escolar Viva, Orgânica e Dinâmica
+   Acessibilidade (WCAG 2.1 AA) & Heurísticas de Usabilidade (Nielsen)
+   ========================================================================== */
+
+:root {
+  /* Cores Lousa e Giz Autênticas */
+  --chalk-bg: #142419;
+  --chalk-bg-dark: #0a140e;
+  --chalk-surface: rgba(20, 36, 25, 0.96);
+  --chalk-surface-solid: #1b3323;
+  --chalk-surface-hover: #223f2b;
+  --chalk-border: rgba(244, 244, 240, 0.22);
+  --chalk-border-strong: rgba(244, 244, 240, 0.6);
+
+  /* Tipografia Estilo Giz & Manuscrita Real (Gloria Hallelujah / Caveat) */
+  --font-title: 'Gloria Hallelujah', 'Caveat', cursive, sans-serif;
+  --font-chalk: 'Patrick Hand', cursive, sans-serif;
+
+  --chalk-text: #f4f4f0;
+  --chalk-muted: #9eb5a2;
+  --chalk-white: #ffffff;
+
+  /* Jogador X (Amarelo Pastel Giz - Alto Contraste) */
+  --color-player-x: #ffe66d;
+  --color-player-x-bg: rgba(255, 230, 109, 0.1);
+  --color-player-x-border: rgba(255, 230, 109, 0.45);
+
+  /* Jogador O (Azul Pastel Giz / Ciano - Alto Contraste) */
+  --color-player-o: #7bdff2;
+  --color-player-o-bg: rgba(123, 223, 242, 0.1);
+  --color-player-o-border: rgba(123, 223, 242, 0.45);
+
+  /* Vitória / Destaque (Verde Giz) */
+  --color-win: #b4f8c8;
+  --color-win-bg: rgba(180, 248, 200, 0.18);
+  --color-win-border: rgba(180, 248, 200, 0.65);
+
+  --color-draw: #e2e8f0;
+  --color-draw-bg: rgba(226, 232, 240, 0.08);
+
+  --color-danger: #ffb7b2;
+  --color-danger-hover: #ff9994;
+  --color-danger-bg: rgba(255, 183, 178, 0.12);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-chalk: 0 12px 35px rgba(0, 0, 0, 0.5);
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-chalk);
+  background-color: var(--chalk-bg);
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.055) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(244, 244, 240, 0.045) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+  color: var(--chalk-text);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1rem 2.5rem 1rem;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Manchas sutis de poeira de giz (chalk dust smudges) na lousa */
+.chalk-dust-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(ellipse at 35% 25%, rgba(255,255,255,0.038) 0%, transparent 45%),
+    radial-gradient(ellipse at 75% 65%, rgba(255,255,255,0.03) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.025) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 20%, rgba(255,255,255,0.028) 0%, transparent 40%);
+  z-index: 0;
+}
+
+/* Wrapper da Página */
+.page-wrapper {
+  width: 100%;
+  max-width: 1140px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Canaleta de Giz na Borda Inferior da Lousa Viva */
+.chalk-tray {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: linear-gradient(to bottom, #4a2c16, #2c190c);
+  border-top: 3px solid #5c3a21;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.6);
+  z-index: 50;
+}
+
+.chalk-tray .eraser {
+  transform: translateY(-5px);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.chalk-tray .chalk-pieces {
+  display: flex;
+  gap: 0.75rem;
+  transform: translateY(-4px);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+}
+
+/* ==========================================================================
+   Cabeçalho Principal com Título Manuscrito Real e Centralização por Grid
+   ========================================================================== */
+.main-header {
+  width: 100%;
+}
+
+.header-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.5rem 0.25rem 1rem 0.25rem;
+  border-bottom: 2px dashed var(--chalk-border);
+}
+
+.header-left-space {
+  grid-column: 1;
+}
+
+.header-center-group {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: nowrap;
+}
+
+.title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  text-align: center;
+}
+
+.main-title {
+  font-family: var(--font-title);
+  font-size: 2.5rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--chalk-white);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.75), 0 0 12px rgba(255, 255, 255, 0.3);
+  filter: url(#chalkTexture);
+  white-space: nowrap;
+  line-height: 1.1;
+}
+
+.chalk-underline {
+  opacity: 0.85;
+  margin-top: -2px;
+}
+
+.badge {
+  font-family: var(--font-chalk);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.badge-accent {
+  background-color: rgba(255, 230, 109, 0.15);
+  color: var(--color-player-x);
+  border: 1px solid var(--color-player-x-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.header-actions {
+  grid-column: 3;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-icon-action {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--chalk-border);
+  color: var(--chalk-text);
+  width: 44px;
+  height: 44px; /* WCAG touch target >= 44x44px */
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-icon-action svg {
+  width: 22px;
+  height: 22px;
+}
+
+.btn-icon-action:hover {
+  background: var(--chalk-surface-hover);
+  color: var(--chalk-white);
+  border-color: var(--chalk-border-strong);
+}
+
+/* Indicador de Foco Acessível (:focus-visible) WCAG 2.1 AA */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--color-player-x);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Container Principal do Jogo
+   ========================================================================== */
+.game-container {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.arena-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.round-badge {
+  font-family: var(--font-chalk);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--chalk-white);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.4rem 1.25rem;
+  border-radius: var(--radius-full);
+  border: 1px dashed var(--chalk-border);
+}
+
+.round-badge.badge-tiebreaker {
+  background-color: rgba(255, 159, 67, 0.22);
+  border: 1.5px solid rgba(255, 159, 67, 0.75);
+  color: #ff9f43;
+  font-weight: 700;
+  animation: badgePulse 2s infinite ease-in-out;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .round-badge.badge-tiebreaker {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Placar Estilo Tabela de Giz (Chalkboard Table Scoreboard com Tally Marks)
+   ========================================================================== */
+.chalkboard-table {
+  display: flex;
+  align-items: center;
+  background: rgba(17, 31, 21, 0.85);
+  border: 2px solid var(--chalk-border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 1rem;
+  box-shadow: var(--shadow-chalk);
+}
+
+.scoreboard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.score-card {
+  padding: 0.2rem 0.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-divider {
+  width: 1px;
+  height: 28px;
+  background-color: var(--chalk-border);
+  margin: 0 0.3rem;
+}
+
+.score-card-x { color: var(--color-player-x); }
+.score-card-draw { color: var(--color-draw); }
+.score-card-o { color: var(--color-player-o); }
+
+.score-label {
+  font-family: var(--font-chalk);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.95;
+}
+
+.score-tally-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-value {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+}
+
+.tally-marks {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  letter-spacing: -2px;
+  opacity: 0.85;
+  color: inherit;
+}
+
+/* ==========================================================================
+   Layout Widescreen: Lado a Lado (Jogadores + Tabuleiro Central)
+   ========================================================================== */
+.duel-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(340px, 1fr) 280px;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+.center-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+/* ==========================================================================
+   Cards dos Jogadores com Moldura Orgânica & Scribble Ring Ativo
+   ========================================================================== */
+.hangman-card.hangman-organic {
+  background: rgba(22, 40, 27, 0.9);
+  border: 2px dashed var(--chalk-border);
+  /* Forma orgânica assimétrica estilo lousa */
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  position: relative;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-chalk);
+}
+
+.hangman-card.hangman-x {
+  border-color: rgba(255, 230, 109, 0.35);
+}
+
+.hangman-card.hangman-o {
+  border-color: rgba(123, 223, 242, 0.35);
+}
+
+/* Anel / Rabisco de Giz ao Redor do Card Ativo */
+.chalk-scribble-ring {
+  position: absolute;
+  top: -12px;
+  left: 5%;
+  width: 90%;
+  height: 40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.hangman-card.active-turn .chalk-scribble-ring {
+  opacity: 0.9;
+  animation: ringPulse 2s infinite alternate ease-in-out;
+}
+
+@keyframes ringPulse {
+  0% { transform: scale(1); opacity: 0.75; }
+  100% { transform: scale(1.03); opacity: 1; }
+}
+
+.hangman-card.active-turn {
+  transform: translateY(-3px);
+  border-style: solid;
+  border-width: 2.5px;
+}
+.hangman-card.hangman-x.active-turn {
+  border-color: var(--color-player-x);
+  box-shadow: 0 0 25px rgba(255, 230, 109, 0.3);
+}
+.hangman-card.hangman-o.active-turn {
+  border-color: var(--color-player-o);
+  box-shadow: 0 0 25px rgba(123, 223, 242, 0.3);
+}
+
+.player-header-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.hangman-card h2 {
+  font-family: var(--font-chalk);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--chalk-white);
+  overflow-wrap: anywhere;
+}
+
+.turn-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--chalk-muted);
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.hangman-card.active-turn .turn-badge {
+  opacity: 1;
+  background: rgba(180, 248, 200, 0.18);
+  color: var(--color-win);
+  border: 1px solid var(--color-win-border);
+}
+
+/* SVG da Forca com traço rústico de giz */
+.hangman {
+  width: 100%;
+  max-width: 160px;
+  height: 140px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.hangman-x { color: var(--color-player-x); }
+.hangman-o { color: var(--color-player-o); }
+
+.hangman .scaffold {
+  stroke: rgba(244, 244, 240, 0.5);
+  stroke-width: 3;
+}
+
+/* Vidas & Corações de Giz */
+.lives-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.hearts-row {
+  display: flex;
+  gap: 0.5rem;
+  color: var(--color-danger);
+}
+
+.heart {
+  transition: transform var(--transition-fast);
+}
+
+.heart.active {
+  color: var(--color-danger);
+}
+
+.heart:not(.active) {
+  opacity: 0.3;
+  color: var(--chalk-muted);
+}
+
+.lives {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--chalk-muted);
+}
+
+.tiebreaker-compact-banner {
+  font-family: var(--font-chalk);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ff9f43;
+  background: rgba(255, 159, 67, 0.15);
+  border: 1px dashed rgba(255, 159, 67, 0.65);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(255, 159, 67, 0.2);
+}
+
+.tiebreaker-compact-banner .banner-icon {
+  stroke: #ff9f43;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Banner de Status Dinâmico (Escrito na Lousa com Sublinhado)
+   ========================================================================== */
+.status-section {
+  width: 100%;
+}
+
+.tiebreaker-rule-banner {
+  font-family: var(--font-chalk);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--chalk-white);
+  background: rgba(255, 107, 107, 0.2);
+  border: 2px dashed #ff6b6b;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: bannerPulse 2.5s infinite ease-in-out;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.tiebreaker-rule-banner .banner-icon {
+  stroke: #ff9f43;
+  flex-shrink: 0;
+}
+
+@keyframes bannerPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); }
+  50% { transform: scale(1.01); box-shadow: 0 4px 22px rgba(255, 107, 107, 0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tiebreaker-rule-banner {
+    animation: none;
+  }
+}
+
+.status-banner {
+  font-family: var(--font-chalk);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.85rem 1.25rem 1.1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--chalk-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  transition: var(--transition-normal);
+}
+
+.status-chalk-underline {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 100%;
+  opacity: 0.75;
+}
+
+.status-banner.status-x {
+  background-color: var(--color-player-x-bg);
+  border-color: var(--color-player-x-border);
+  color: var(--color-player-x);
+}
+
+.status-banner.status-o {
+  background-color: var(--color-player-o-bg);
+  border-color: var(--color-player-o-border);
+  color: var(--color-player-o);
+}
+
+.status-banner.status-win {
+  background-color: var(--color-win-bg);
+  border-color: var(--color-win-border);
+  color: var(--color-win);
+}
+
+.status-banner.status-draw {
+  background-color: var(--color-draw-bg);
+  border-color: var(--chalk-border);
+  color: var(--color-draw);
+}
+
+/* ==========================================================================
+   Tabuleiro Tradicional de Jogo da Velha (#) com Animação de Giz & Filtro Poroso
+   ========================================================================== */
+.board-section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 98px);
+  grid-template-rows: repeat(3, 98px);
+  position: relative;
+  background: transparent;
+  padding: 8px;
+}
+
+.board-grid.board-grid-10x10 {
+  width: min(64vh, 540px);
+  height: min(64vh, 540px);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 2px;
+  padding: 6px;
+  background-color: rgba(20, 36, 25, 0.85);
+  border: 2px solid rgba(216, 223, 216, 0.75);
+  border-radius: var(--radius-md);
+}
+
+.board-grid.board-grid-10x10 .cell {
+  font-size: clamp(0.75rem, 1.8vh, 1.3rem);
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(216, 223, 216, 0.5);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+
+/* Estilos de Morte Súbita para a Área de Jogo (Lousa e Cards) */
+.game-container.tiebreaker-active {
+  border: 2px dashed #ff9f43;
+  border-radius: var(--radius-lg);
+  max-width: 1180px;
+  width: 94vw;
+  margin: 0 auto;
+  padding: 1.25rem 1.75rem;
+  background: rgba(20, 36, 25, 0.95);
+  box-shadow: 0 0 30px rgba(255, 159, 67, 0.3), inset 0 0 25px rgba(255, 107, 107, 0.15);
+  animation: tiebreakerAura 3s infinite ease-in-out;
+}
+
+.game-container.tiebreaker-active .status-banner {
+  padding: 6px 16px;
+  font-size: 1.1rem;
+}
+
+@keyframes tiebreakerAura {
+  0%, 100% { border-color: rgba(255, 159, 67, 0.65); box-shadow: 0 0 25px rgba(255, 159, 67, 0.25); }
+  50% { border-color: rgba(255, 107, 107, 0.95); box-shadow: 0 0 40px rgba(255, 107, 107, 0.45); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-container.tiebreaker-active {
+    animation: none;
+  }
+}
+
+.game-container.tiebreaker-active .hangman-card .hangman,
+.game-container.tiebreaker-active .hangman-card .lives-container {
+  display: none !important;
+}
+
+.game-container.tiebreaker-active .hangman-card {
+  padding: 0.85rem 1.15rem;
+  min-height: auto;
+  gap: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-container.tiebreaker-active .player-header-info {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.game-container.tiebreaker-active .hangman-card h2 {
+  font-size: 1.15rem;
+}
+
+@media (min-width: 901px) {
+  body.tiebreaker-body-active {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    justify-content: center;
+    padding: 0.2rem 1rem 1.5rem 1rem;
+  }
+  body.tiebreaker-body-active .page-wrapper {
+    max-width: 1180px;
+    gap: 0.5rem;
+  }
+  body.tiebreaker-body-active .game-container.tiebreaker-active {
+    gap: 0.45rem;
+    padding: 0.65rem 1.25rem;
+  }
+  body.tiebreaker-body-active .center-arena {
+    gap: 0.35rem;
+  }
+  body.tiebreaker-body-active .hangman-card {
+    padding: 0.5rem 0.75rem;
+    gap: 0.25rem;
+  }
+  body.tiebreaker-body-active .actions-section {
+    gap: 0.6rem;
+  }
+  body.tiebreaker-body-active .btn {
+    padding: 0.45rem 1rem;
+    min-height: 38px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Efeito Apagador / Poeira de Giz ao limpar o tabuleiro */
+.eraser-dust-wipe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(22,42,29,0.1) 80%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: var(--radius-md);
+}
+
+.board-grid.wiping .eraser-dust-wipe {
+  animation: eraserWipeEffect 400ms ease-out;
+}
+
+@keyframes eraserWipeEffect {
+  0% { opacity: 0.9; transform: scale(0.95); filter: blur(4px); }
+  50% { opacity: 0.6; filter: blur(2px); }
+  100% { opacity: 0; transform: scale(1); filter: blur(0); }
+}
+
+/* Linhas do Tabuleiro # em Giz (SVG Overlay) */
+.chalk-grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chalk-line {
+  stroke: var(--chalk-text);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0.85;
+}
+
+.cell {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-title);
+  font-size: 2.75rem;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  position: relative;
+  z-index: 2;
+  min-height: 44px; /* WCAG touch target */
+  min-width: 44px;
+}
+
+.cell:hover:not(:disabled):not(.cell-occupied) {
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.02);
+}
+
+/* Preview no Hover/Foco com marca d'água fantasma (Heurística de Nielsen) */
+.status-banner.status-x ~ .board-section .cell:hover:not(:disabled):not(.cell-occupied)::after,
+.status-banner.status-x ~ .board-section .cell:focus-visible:not(:disabled):not(.cell-occupied)::after {
+  content: 'X';
+  color: var(--color-player-x);
+  opacity: 0.3;
+  position: absolute;
+  font-family: var(--font-title);
+}
+
+.status-banner.status-o ~ .board-section .cell:hover:not(:disabled):not(.cell-occupied)::after,
+.status-banner.status-o ~ .board-section .cell:focus-visible:not(:disabled):not(.cell-occupied)::after {
+  content: 'O';
+  color: var(--color-player-o);
+  opacity: 0.3;
+  position: absolute;
+  font-family: var(--font-title);
+}
+
+/* Aplicação do Filtro Poroso de Giz nas Marcas SVG */
+.chalk-mark-svg {
+  filter: url(#chalkTexture);
+}
+
+/* Animação Sequencial de Traço de Giz com Ponta Luminosa (Chalk Tip) */
+@keyframes chalkDraw {
+  from {
+    stroke-dashoffset: 130;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.animate-draw .chalk-stroke {
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  animation: chalkDraw 350ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-draw .stroke-1 {
+  animation-delay: 0ms;
+}
+
+.animate-draw .stroke-2 {
+  animation-delay: 140ms; /* Atraso sequencial entre o 1º e 2º risco do X */
+}
+
+.animate-draw .stroke-circle {
+  animation-delay: 0ms;
+}
+
+/* Animação da Ponta de Giz (Ponto Luminoso/Poeira) Acompanhando o Traço */
+@keyframes moveTip1 {
+  0% { transform: translate(11px, 11px); opacity: 1; }
+  100% { transform: translate(39px, 39px); opacity: 0; }
+}
+
+@keyframes moveTip2 {
+  0% { transform: translate(39px, 11px); opacity: 1; }
+  100% { transform: translate(11px, 39px); opacity: 0; }
+}
+
+@keyframes moveTipCircle {
+  0% { transform: translate(25px, 10px); opacity: 1; }
+  25% { transform: translate(41px, 25px); opacity: 1; }
+  50% { transform: translate(25px, 41px); opacity: 1; }
+  75% { transform: translate(10px, 24px); opacity: 1; }
+  100% { transform: translate(25px, 10px); opacity: 0; }
+}
+
+.chalk-tip {
+  r: 2.5px;
+  fill: #ffffff;
+  filter: drop-shadow(0 0 4px #ffe66d);
+  opacity: 0;
+}
+
+.animate-draw .chalk-tip-1 {
+  animation: moveTip1 350ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-draw .chalk-tip-2 {
+  animation: moveTip2 350ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation-delay: 140ms;
+}
+
+.animate-draw .chalk-tip-circle {
+  animation: moveTipCircle 350ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  filter: drop-shadow(0 0 4px #7bdff2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-draw .chalk-stroke {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .animate-draw .chalk-tip {
+    display: none !important;
+  }
+}
+
+/* Células Ocupadas com animação pop */
+.cell.cell-occupied {
+  cursor: default;
+}
+
+.animate-draw {
+  animation: popIn 250ms ease-out;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Células Vencedoras Brilhantes (.winning-cell) */
+.cell.winning-cell {
+  background: var(--color-win-bg) !important;
+  border-radius: var(--radius-sm);
+  animation: winPulse 1.2s infinite alternate;
+}
+
+@keyframes winPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+.board-grid.game-over .cell:not(.winning-cell) {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Shake animation (jogada inválida) */
+.cell.shake {
+  animation: shakeCell 300ms ease-in-out;
+}
+
+@keyframes shakeCell {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* ==========================================================================
+   Controles de Ação
+   ========================================================================== */
+.actions-section {
+  display: flex;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.btn {
+  font-family: var(--font-chalk);
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-height: 48px; /* WCAG touch target */
+  transition: var(--transition-fast);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-primary {
+  background-color: rgba(255, 230, 109, 0.2);
+  color: var(--color-player-x);
+  border-color: var(--color-player-x-border);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: rgba(255, 230, 109, 0.35);
+  border-color: var(--color-player-x);
+}
+
+/* Contraste WCAG 2.1 AA garantido em botão desabilitado (≥ 4.5:1) */
+.btn-primary:disabled {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--chalk-muted);
+  border-color: var(--chalk-border);
+  opacity: 0.75;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: rgba(255, 183, 178, 0.35);
+}
+
+.btn-outline-danger:hover {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.btn-secondary {
+  background: var(--chalk-surface-hover);
+  color: var(--chalk-text);
+  border-color: var(--chalk-border);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--chalk-border-strong);
+}
+
+.btn-danger {
+  background: rgba(255, 183, 178, 0.25);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.btn-danger:hover {
+  background: rgba(255, 183, 178, 0.4);
+}
+
+/* ==========================================================================
+   Modais (Configurações, Ajuda e Confirmação)
+   ========================================================================== */
+.modal-dialog {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: auto;
+  max-width: 480px;
+  width: 90%;
+  animation: fadeIn 200ms ease;
+}
+
+.modal-dialog::backdrop {
+  background: rgba(10, 20, 14, 0.88);
+  backdrop-filter: blur(6px);
+}
+
+.blackboard-panel {
+  background: rgba(22, 40, 27, 0.98);
+  border: 1px solid var(--chalk-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-chalk);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: var(--chalk-text);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--chalk-white);
+}
+
+.btn-close {
+  background: transparent;
+  border: 1px solid var(--chalk-border);
+  color: var(--chalk-muted);
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.btn-close:hover {
+  color: var(--chalk-white);
+  background: var(--chalk-surface-hover);
+  border-color: var(--chalk-border-strong);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.85rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.form-label, label {
+  font-family: var(--font-chalk);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--chalk-muted);
+}
+
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: var(--chalk-bg-dark);
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--chalk-border);
+}
+
+.btn-mode {
+  background: transparent;
+  border: none;
+  color: var(--chalk-muted);
+  font-family: var(--font-chalk);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: var(--transition-fast);
+}
+
+.btn-mode.active {
+  background: rgba(255, 230, 109, 0.2);
+  color: var(--color-player-x);
+  border: 1px solid var(--color-player-x-border);
+}
+
+input[type="text"], select.select-styled {
+  width: 100%;
+  background: var(--chalk-bg-dark);
+  border: 1px solid var(--chalk-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-chalk);
+  font-size: 1.05rem;
+  color: var(--chalk-white);
+  min-height: 44px;
+  transition: var(--transition-fast);
+}
+
+input[type="text"]:focus, select.select-styled:focus {
+  outline: none;
+  border-color: var(--color-player-x);
+  border-width: 2px;
+}
+
+.rules-list {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  color: var(--chalk-muted);
+}
+
+.confirm-dialog .blackboard-panel {
+  text-align: center;
+  align-items: center;
+}
+
+.dialog-icon {
+  font-size: 2.75rem;
+}
+
+.dialog-title {
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--chalk-white);
+}
+
+.dialog-description {
+  font-size: 1.05rem;
+  color: var(--chalk-muted);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.85rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ==========================================================================
+   Responsividade (Mobile vs Widescreen)
+   ========================================================================== */
+@media (max-width: 900px) {
+  body {
+    padding: 0.5rem 0.5rem 2.5rem 0.5rem;
+    justify-content: flex-start;
+  }
+
+  .header-top {
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+  }
+
+  .header-center-group {
+    grid-column: 2;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .main-title {
+    font-size: 2rem;
+  }
+  
+  .duel-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .duel-panel {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+  }
+
+  .hangman {
+    max-width: 100px;
+    height: 90px;
+  }
+
+  .lives-container {
+    width: auto;
+  }
+
+  .board-grid {
+    grid-template-columns: repeat(3, 102px);
+    grid-template-rows: repeat(3, 102px);
+  }
+}
+
+@media (max-width: 420px) {
+  .board-grid {
+    grid-template-columns: repeat(3, 88px);
+    grid-template-rows: repeat(3, 88px);
+  }
+
+  .cell {
+    font-size: 2.25rem;
+  }
+}
+
+/* ==========================================================================
+   Easter Egg Overlay Styles
+   ========================================================================== */
+.easter-egg-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s ease;
+}
+
+.easter-egg-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .easter-egg-overlay {
+    transition: opacity 0s ease !important;
+  }
+}
+
+.easter-egg-chalk-msg {
+  font-family: var(--font-title);
+  font-size: 2.2rem;
+  color: var(--chalk-white);
+  text-align: center;
+  padding: 2rem;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+  filter: url(#chalkTexture);
+  z-index: 10000;
+}
+
+.easter-egg-video-container {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 10001;
+}
+
+.easter-egg-video-container iframe {
+  width: 100vw;
+  height: 100vh;
+  border: none;
+  object-fit: cover;
+}
+
+.btn-easter-egg-wakeup {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  font-family: var(--font-chalk);
+  font-size: 0.95rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--color-player-x);
+  border: 1px solid var(--color-player-x-border);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  z-index: 10003;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-easter-egg-wakeup:hover {
+  opacity: 1;
+}
+
+.btn-easter-egg-exit {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  font-family: var(--font-chalk);
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: rgba(20, 36, 25, 0.9);
+  color: var(--chalk-white);
+  border: 2px solid var(--chalk-border-strong);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  z-index: 10003;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms ease, transform 300ms ease, background-color var(--transition-fast);
+}
+
+.btn-easter-egg-exit.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.btn-easter-egg-exit:hover {
+  background: var(--chalk-surface-hover);
+  border-color: var(--color-player-x);
+  color: var(--color-player-x);
+}

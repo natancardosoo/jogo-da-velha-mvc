@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jogo da Velha interativo desenvolvido com Arquitetura MVC, HTML5 Semântico, CSS3 Moderno e JavaScript Puro (ES2020), em total conformidade com WCAG 2.1 AA.">
+  <title>Duelo da Velha — 3 Vidas</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="page-wrapper">
+    <!-- Cabeçalho Principal -->
+    <header class="main-header">
+      <h1 class="main-title">Duelo da Velha — 3 Vidas</h1>
+      <p class="subtitle">
+        Cada derrota desenha uma parte do seu personagem. Vença o duelo antes de perder suas três vidas!
+      </p>
+    </header>
+
+    <!-- Área Central da Aplicação -->
+    <main class="game-container" id="gameApp">
+      <section class="duel-panel" aria-label="Vidas dos participantes"><article class="hangman-card hangman-x">
+      <h2 id="nameX">Jogador X</h2>
+      <svg id="hangmanX" viewBox="0 0 180 190" aria-hidden="true" class="hangman">
+        <path d="M15 180 H120 M40 180 V15 H115 V35" class="scaffold"/>
+        <circle data-stage="1" cx="115" cy="55" r="20" style="visibility:hidden"/>
+        <g data-stage="2" style="visibility:hidden"><path d="M115 75 V125 M115 85 L85 110 M115 85 L145 110"/></g>
+        <g data-stage="3" style="visibility:hidden"><path d="M115 125 L90 160 M115 125 L140 160"/></g>
+      </svg>
+      <p id="livesX" class="lives" aria-live="polite">3 de 3 vidas</p>
+    </article><article class="hangman-card hangman-o">
+      <h2 id="nameO">Jogador O</h2>
+      <svg id="hangmanO" viewBox="0 0 180 190" aria-hidden="true" class="hangman">
+        <path d="M15 180 H120 M40 180 V15 H115 V35" class="scaffold"/>
+        <circle data-stage="1" cx="115" cy="55" r="20" style="visibility:hidden"/>
+        <g data-stage="2" style="visibility:hidden"><path d="M115 75 V125 M115 85 L85 110 M115 85 L145 110"/></g>
+        <g data-stage="3" style="visibility:hidden"><path d="M115 125 L90 160 M115 125 L140 160"/></g>
+      </svg>
+      <p id="livesO" class="lives" aria-live="polite">3 de 3 vidas</p>
+    </article></section><p id="roundNumber" class="round-number">Rodada 1</p>
+      <!-- Painel de Placar (RF07) -->
+      <section class="scoreboard" aria-label="Placar da sessão">
+        <div class="score-card score-card-x" id="cardScoreX">
+          <span class="score-label">VITÓRIAS X</span>
+          <span class="score-value" id="scoreX" aria-live="polite">0</span>
+        </div>
+        <div class="score-card score-card-draw" id="cardScoreDraw">
+          <span class="score-label">EMPATES</span>
+          <span class="score-value" id="scoreDraw" aria-live="polite">0</span>
+        </div>
+        <div class="score-card score-card-o" id="cardScoreO">
+          <span class="score-label">VITÓRIAS O</span>
+          <span class="score-value" id="scoreO" aria-live="polite">0</span>
+        </div>
+      </section>
+
+      <!-- Banner de Status de Turno / Fim de Jogo (RF03, RF05, RNF05) -->
+      <section class="status-section" aria-label="Status do jogo">
+        <div 
+          id="gameStatus" 
+          class="status-banner status-x" 
+          role="status" 
+          aria-live="polite"
+        >
+          Vez do Jogador X
+        </div>
+      </section>
+      
+      <!-- Seletor de Modo de Jogo -->
+      <section class="mode-section" aria-label="Modo de jogo">
+        <div class="mode-toggle">
+          <button type="button" id="btnModeBot" class="btn-mode active" aria-pressed="true">Jogar contra o Bot (IA)</button>
+          <button type="button" id="btnModePvp" class="btn-mode" aria-pressed="false">Dois Jogadores (PvP)</button>
+        </div>
+      </section>
+      
+      <section class="player-names" aria-label="Nomes dos jogadores">
+        <div>
+          <label for="playerNameX">Nome do jogador X</label>
+          <input id="playerNameX" type="text" maxlength="24" placeholder="Jogador X" autocomplete="off">
+        </div>
+        <div id="playerOField" hidden>
+          <label for="playerNameO">Nome do jogador O</label>
+          <input id="playerNameO" type="text" maxlength="24" placeholder="Jogador O" autocomplete="off" disabled>
+        </div>
+      </section>
+      <section id="difficultySection" class="difficulty-section">
+        <label for="botDifficulty">Dificuldade do bot</label>
+        <select id="botDifficulty">
+          <option value="easy">Fácil</option>
+          <option value="medium" selected>Médio</option>
+          <option value="hard">Difícil</option>
+        </select>
+      </section>
+      <p class="duel-rules">1ª derrota: cabeça · 2ª: tronco e braços · 3ª: pernas e fim do duelo.<br>
+        Empates preservam vidas. Quem começa alterna a cada rodada.<br>
+        Trocar o modo ou a dificuldade inicia um novo duelo. Tudo acontece neste dispositivo.</p>
+            <!-- Tabuleiro 3x3 (RF01, RF02, RF04, RNF05) -->
+      <section class="board-section" aria-label="Área do tabuleiro">
+        <div 
+          class="board-grid" 
+          id="boardGrid" 
+          role="grid" 
+          aria-label="Tabuleiro do Jogo da Velha com 3 linhas e 3 colunas"
+        >
+          <!-- 9 Casas interativas via botões semânticos -->
+          <button type="button" class="cell" data-index="0" data-row="1" data-col="1" aria-label="Linha 1, Coluna 1, vazia"></button>
+          <button type="button" class="cell" data-index="1" data-row="1" data-col="2" aria-label="Linha 1, Coluna 2, vazia"></button>
+          <button type="button" class="cell" data-index="2" data-row="1" data-col="3" aria-label="Linha 1, Coluna 3, vazia"></button>
+
+          <button type="button" class="cell" data-index="3" data-row="2" data-col="1" aria-label="Linha 2, Coluna 1, vazia"></button>
+          <button type="button" class="cell" data-index="4" data-row="2" data-col="2" aria-label="Linha 2, Coluna 2, vazia"></button>
+          <button type="button" class="cell" data-index="5" data-row="2" data-col="3" aria-label="Linha 2, Coluna 3, vazia"></button>
+
+          <button type="button" class="cell" data-index="6" data-row="3" data-col="1" aria-label="Linha 3, Coluna 1, vazia"></button>
+          <button type="button" class="cell" data-index="7" data-row="3" data-col="2" aria-label="Linha 3, Coluna 2, vazia"></button>
+          <button type="button" class="cell" data-index="8" data-row="3" data-col="3" aria-label="Linha 3, Coluna 3, vazia"></button>
+        </div>
+      </section>
+
+      <!-- Controles de Ação (RF06, RF08) -->
+      <section class="actions-section" aria-label="Controles da partida">
+        <button type="button" id="btnNewGame" class="btn btn-primary" disabled>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          Próxima rodada
+        </button>
+
+        <button type="button" id="btnResetScores" class="btn btn-outline-danger" aria-label="Iniciar novo duelo com confirmação">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Novo duelo
+        </button>
+      </section>
+    </main>
+
+    <!-- Modal de Confirmação para Zerar Placar (RF08, RN07) -->
+    <dialog id="confirmDialog" class="confirm-dialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+      <div class="dialog-content">
+        <div class="dialog-icon" aria-hidden="true">⚠️</div>
+        <h2 id="dialogTitle" class="dialog-title">Iniciar novo duelo?</h2>
+        <p id="dialogDesc" class="dialog-description">
+          As vidas, o placar e a rodada atual serão reiniciados. O modo e a dificuldade serão mantidos.
+        </p>
+        <div class="dialog-actions">
+          <button type="button" id="btnCancelReset" class="btn btn-secondary">Cancelar</button>
+          <button type="button" id="btnConfirmReset" class="btn btn-danger">Sim, novo duelo</button>
+        </div>
+      </div>
+    </dialog>
+
+  </div>
+</body>
+</html>

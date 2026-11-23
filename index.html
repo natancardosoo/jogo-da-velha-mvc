@@ -203,6 +203,7 @@
 
     <!-- Canaleta de Giz e Apagador na Borda Inferior -->
     <div class="chalk-tray" aria-hidden="true">
+      <button type="button" id="btnDebugSuddenDeath" class="debug-chalk-speck" title="Debug: Preparar empate Morte Súbita" tabindex="-1" aria-label="Debug: Preparar empate Morte Súbita"></button>
       <div class="eraser">
         <svg viewBox="0 0 60 25" width="55" height="22" fill="#5c3a21">
           <rect x="2" y="2" width="56" height="21" rx="3" fill="#b08968" stroke="#3d2311" stroke-width="2"/>
@@ -328,9 +329,6 @@
       const scoreXEl = document.getElementById('scoreX');
       const scoreOEl = document.getElementById('scoreO');
 
-      const heartSvgActive = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
-      const heartSvgInactive = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" opacity="0.3"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
-
       function updateHearts(livesEl, heartsContainer) {
         if (!livesEl || !heartsContainer) return;
         const text = livesEl.textContent || '';
@@ -340,10 +338,12 @@
         hearts.forEach((heart, idx) => {
           if (idx < count) {
             heart.classList.add('active');
-            heart.innerHTML = heartSvgActive;
+            const svg = heart.querySelector('svg');
+            if (svg) svg.style.opacity = '1';
           } else {
             heart.classList.remove('active');
-            heart.innerHTML = heartSvgInactive;
+            const svg = heart.querySelector('svg');
+            if (svg) svg.style.opacity = '0.3';
           }
         });
       }
@@ -382,12 +382,12 @@
     });
   </script>
 
-  <!-- Easter Egg Overlay (Fade to Black + YouTube + Controls) -->
+  <!-- Easter Egg Overlay (Fade to Black + Video + Controls) -->
   <div id="easterEggOverlay" class="easter-egg-overlay" hidden aria-hidden="true">
     <div id="easterEggMessage" class="easter-egg-chalk-msg" aria-live="assertive">Empate até na Morte Súbita?! Você quebrou o sistema...</div>
     <div id="easterEggVideoContainer" class="easter-egg-video-container" hidden>
-      <iframe id="easterEggIframe" src="" title="Easter Egg YouTube Video" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-      <button type="button" id="btnWakeUp" class="btn-easter-egg-wakeup">▶ Acordar...</button>
+      <video id="easterEggVideo" src="./assets/easter-egg.mp4" playsinline preload="auto"></video>
+      <button type="button" id="btnWakeUp" class="btn-easter-egg-wakeup" style="display: none;">🔊 Ativar som</button>
       <button type="button" id="btnExitEasterEgg" class="btn-easter-egg-exit" aria-label="Sair do easter egg e iniciar novo duelo">Voltar ao Duelo</button>
     </div>
   </div>

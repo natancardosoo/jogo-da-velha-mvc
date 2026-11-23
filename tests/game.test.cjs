@@ -95,3 +95,36 @@ test('sudden death draw condition when 10x10 board is filled without winner', ()
   }
   assert.equal(model.checkDraw(model.board), true);
 });
+
+test('debug prefill 99 cells leaves 1 cell to trigger sudden death draw', () => {
+  const model = new Model();
+  model.isTiebreakerActive = true;
+  model.resetBoard();
+
+  for (let i = 0; i < 99; i++) {
+    const row = Math.floor(i / 10);
+    const col = i % 10;
+    model.board[i] = ((Math.floor(row / 2) + Math.floor(col / 2)) % 2 === 0) ? 'X' : 'O';
+  }
+  model.board[99] = null;
+  model.currentPlayer = 'X';
+
+  while (true) {
+    model.board[99] = model.currentPlayer;
+    const winX = model.checkWin10x10(model.board, 'X');
+    const winO = model.checkWin10x10(model.board, 'O');
+    model.board[99] = null;
+
+    if (!winX && !winO) break;
+
+    const fixIndex = winX ? winX[0] : (winO ? winO[0] : 0);
+    model.board[fixIndex] = model.board[fixIndex] === 'X' ? 'O' : 'X';
+  }
+
+  assert.equal(model.checkDraw(model.board), false);
+
+  const res = model.makeMove(99);
+  assert.equal(res.success, true);
+  assert.equal(model.winner, 'draw');
+  assert.equal(model.isTiebreakerActive, true);
+});

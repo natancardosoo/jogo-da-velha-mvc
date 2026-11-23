@@ -441,9 +441,69 @@ class GameView {
     }
   }
 
+  createChalkMark(mark, is10x10) {
+    const svgWidth = is10x10 ? '32' : '46';
+    const svgHeight = is10x10 ? '32' : '46';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 50 50');
+    svg.setAttribute('width', svgWidth);
+    svg.setAttribute('height', svgHeight);
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke-width', '5');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', 'chalk-mark-svg');
+
+    if (mark === 'X') {
+      svg.setAttribute('stroke', '#ffe66d');
+      const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path1.setAttribute('class', 'chalk-stroke stroke-1');
+      path1.setAttribute('d', 'M11 11 Q 25 24 39 39');
+      svg.appendChild(path1);
+
+      const tip1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      tip1.setAttribute('class', 'chalk-tip chalk-tip-1');
+      tip1.setAttribute('cx', '0');
+      tip1.setAttribute('cy', '0');
+      tip1.setAttribute('r', '2.5');
+      svg.appendChild(tip1);
+
+      const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path2.setAttribute('class', 'chalk-stroke stroke-2');
+      path2.setAttribute('d', 'M39 11 Q 25 26 11 39');
+      svg.appendChild(path2);
+
+      const tip2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      tip2.setAttribute('class', 'chalk-tip chalk-tip-2');
+      tip2.setAttribute('cx', '0');
+      tip2.setAttribute('cy', '0');
+      tip2.setAttribute('r', '2.5');
+      svg.appendChild(tip2);
+    } else if (mark === 'O') {
+      svg.setAttribute('stroke', '#7bdff2');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'chalk-stroke stroke-circle');
+      path.setAttribute('d', 'M25 10 C 37 9 42 19 41 25 C 40 33 34 41 25 41 C 15 41 9 32 10 24 C 11 16 16 10 25 10 Z');
+      svg.appendChild(path);
+
+      const tip = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      tip.setAttribute('class', 'chalk-tip chalk-tip-circle');
+      tip.setAttribute('cx', '0');
+      tip.setAttribute('cy', '0');
+      tip.setAttribute('r', '2.5');
+      svg.appendChild(tip);
+    }
+    return svg;
+  }
+
   ensureGridCells(count) {
     if (this.cellElements.length === count) return;
-    this.boardGrid.innerHTML = '<div class="eraser-dust-wipe" aria-hidden="true"></div>';
+    const eraserWipe = document.createElement('div');
+    eraserWipe.className = 'eraser-dust-wipe';
+    eraserWipe.setAttribute('aria-hidden', 'true');
+    this.boardGrid.replaceChildren(eraserWipe);
+
     if (count === 100) {
       this.boardGrid.classList.add('board-grid-10x10');
       for (let i = 0; i < 100; i++) {
@@ -464,12 +524,19 @@ class GameView {
       linesSvg.setAttribute('class', 'chalk-grid-lines');
       linesSvg.setAttribute('viewBox', '0 0 300 300');
       linesSvg.setAttribute('aria-hidden', 'true');
-      linesSvg.innerHTML = `
-        <path d="M 18 100 Q 150 97 282 101" class="chalk-line"/>
-        <path d="M 18 200 Q 150 203 282 199" class="chalk-line"/>
-        <path d="M 100 18 Q 97 150 101 282" class="chalk-line"/>
-        <path d="M 200 18 Q 203 150 199 282" class="chalk-line"/>
-      `;
+
+      const pathsData = [
+        'M 18 100 Q 150 97 282 101',
+        'M 18 200 Q 150 203 282 199',
+        'M 100 18 Q 97 150 101 282',
+        'M 200 18 Q 203 150 199 282'
+      ];
+      pathsData.forEach(d => {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', 'chalk-line');
+        linesSvg.appendChild(path);
+      });
       this.boardGrid.appendChild(linesSvg);
 
       for (let i = 0; i < 9; i++) {
@@ -533,23 +600,6 @@ class GameView {
   renderBoard(board, winningCombo = null, isGameOver = false, lastMoveIndex = null) {
     this.ensureGridCells(board.length);
     const is10x10 = board.length === 100;
-    const svgWidth = is10x10 ? '32' : '46';
-    const svgHeight = is10x10 ? '32' : '46';
-
-    const svgX = `
-      <svg viewBox="0 0 50 50" width="${svgWidth}" height="${svgHeight}" fill="none" stroke="#ffe66d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chalk-mark-svg">
-        <path class="chalk-stroke stroke-1" d="M11 11 Q 25 24 39 39"/>
-        <circle class="chalk-tip chalk-tip-1" cx="0" cy="0" r="2.5" />
-        <path class="chalk-stroke stroke-2" d="M39 11 Q 25 26 11 39"/>
-        <circle class="chalk-tip chalk-tip-2" cx="0" cy="0" r="2.5" />
-      </svg>
-    `;
-    const svgO = `
-      <svg viewBox="0 0 50 50" width="${svgWidth}" height="${svgHeight}" fill="none" stroke="#7bdff2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="chalk-mark-svg">
-        <path class="chalk-stroke stroke-circle" d="M25 10 C 37 9 42 19 41 25 C 40 33 34 41 25 41 C 15 41 9 32 10 24 C 11 16 16 10 25 10 Z"/>
-        <circle class="chalk-tip chalk-tip-circle" cx="0" cy="0" r="2.5" />
-      </svg>
-    `;
 
     this.cellElements.forEach((cell, index) => {
       const mark = board[index];
@@ -560,7 +610,7 @@ class GameView {
 
       if (mark === 'X' || mark === 'O') {
         if (currentMark !== mark) {
-          cell.innerHTML = mark === 'X' ? svgX : svgO;
+          cell.replaceChildren(this.createChalkMark(mark, is10x10));
           cell.setAttribute('data-mark', mark);
           cell.classList.add('cell-occupied');
           if (index === lastMoveIndex) {
@@ -574,7 +624,7 @@ class GameView {
         cell.setAttribute('aria-label', `Linha ${row}, Coluna ${col}: Jogador ${mark}`);
       } else {
         if (currentMark !== null) {
-          cell.innerHTML = '';
+          cell.replaceChildren();
           cell.removeAttribute('data-mark');
           cell.classList.remove('cell-occupied', 'animate-draw');
         }
@@ -609,10 +659,27 @@ class GameView {
         tiebreakerCompactBanner = document.createElement('div');
         tiebreakerCompactBanner.id = 'tiebreakerCompactBanner';
         tiebreakerCompactBanner.className = 'tiebreaker-compact-banner';
-        tiebreakerCompactBanner.innerHTML = `
-          <svg class="banner-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          <span>MORTE SÚBITA: Alinhe 5 símbolos para vencer!</span>
-        `;
+
+        const bannerSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        bannerSvg.setAttribute('class', 'banner-icon');
+        bannerSvg.setAttribute('viewBox', '0 0 24 24');
+        bannerSvg.setAttribute('width', '18');
+        bannerSvg.setAttribute('height', '18');
+        bannerSvg.setAttribute('fill', 'none');
+        bannerSvg.setAttribute('stroke', 'currentColor');
+        bannerSvg.setAttribute('stroke-width', '2.5');
+        bannerSvg.setAttribute('stroke-linecap', 'round');
+        bannerSvg.setAttribute('stroke-linejoin', 'round');
+        bannerSvg.setAttribute('aria-hidden', 'true');
+
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', '13 2 3 14 12 14 11 22 21 10 12 10 13 2');
+        bannerSvg.appendChild(polygon);
+
+        const span = document.createElement('span');
+        span.textContent = 'MORTE SÚBITA: Alinhe 5 símbolos para vencer!';
+
+        tiebreakerCompactBanner.replaceChildren(bannerSvg, span);
         arenaHeaderBar.insertBefore(tiebreakerCompactBanner, roundBadge.nextSibling);
       }
     } else {
@@ -768,6 +835,13 @@ class GameView {
   bindCancelReset(handler) {
     this.btnCancelReset.addEventListener('click', handler);
   }
+
+  bindDebugSuddenDeath(handler) {
+    const btn = document.getElementById('btnDebugSuddenDeath');
+    if (btn) {
+      btn.addEventListener('click', handler);
+    }
+  }
 }
 
 /**
@@ -789,6 +863,7 @@ class GameController {
     this.view.bindConfirmReset(this.handleConfirmReset.bind(this));
     this.view.bindCancelReset(this.handleCancelReset.bind(this));
     this.view.bindModeChange(this.handleModeChange.bind(this));
+    this.view.bindDebugSuddenDeath(this.handleDebugSuddenDeath.bind(this));
 
     this.view.bindDifficultyChange(this.handleDifficultyChange.bind(this));
     this.view.bindNameChange((player, name) => {
@@ -797,6 +872,37 @@ class GameController {
       this.renderResult(false);
     });
     this.init();
+  }
+
+  handleDebugSuddenDeath() {
+    console.log('Debug ativado');
+    this.cancelBotTurn();
+    this.model.isTiebreakerActive = true;
+    this.model.pendingTiebreaker = false;
+    this.model.isGameOver = false;
+    this.model.winner = null;
+    this.model.winningCombo = null;
+    this.model.currentPlayer = 'X';
+    this.model.lastMoveIndex = null;
+    this.model.board = Array(100).fill(null);
+
+    for (let i = 0; i < 99; i++) {
+      const row = Math.floor(i / 10);
+      const col = i % 10;
+      this.model.board[i] = ((row + Math.floor(col / 2)) % 2 === 0) ? 'X' : 'O';
+    }
+    this.model.board[99] = null;
+
+    this.render();
+    this.updateTurn(false);
+
+    const lastCell = document.querySelector('.cell[data-index="99"]');
+    if (lastCell) {
+      lastCell.classList.add('debug-highlight-cell');
+      setTimeout(() => {
+        lastCell.classList.remove('debug-highlight-cell');
+      }, 4000);
+    }
   }
 
   init() {
@@ -923,7 +1029,7 @@ class GameController {
     const overlay = document.getElementById('easterEggOverlay');
     const msg = document.getElementById('easterEggMessage');
     const videoContainer = document.getElementById('easterEggVideoContainer');
-    const iframe = document.getElementById('easterEggIframe');
+    const video = document.getElementById('easterEggVideo');
     const btnWakeUp = document.getElementById('btnWakeUp');
     const btnExit = document.getElementById('btnExitEasterEgg');
     
@@ -942,26 +1048,68 @@ class GameController {
 
     overlay.hidden = false;
     overlay.setAttribute('aria-hidden', 'false');
+
     if (msg) {
       msg.hidden = false;
+      msg.classList.remove('fade-out');
       msg.textContent = 'Empate até na Morte Súbita?! Você quebrou o sistema...';
     }
-    if (videoContainer) videoContainer.hidden = true;
+    if (videoContainer) {
+      videoContainer.hidden = false;
+      videoContainer.classList.remove('visible');
+    }
+    if (video) {
+      video.style.display = 'none';
+      video.style.opacity = '0';
+    }
     if (btnExit) btnExit.classList.remove('visible');
+    if (btnWakeUp) btnWakeUp.style.display = 'none';
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const fadeDuration = prefersReducedMotion ? 0 : 2000;
+    const fadeDuration = prefersReducedMotion ? 0 : 3000;
+    const textVisibleTime = prefersReducedMotion ? 0 : (fadeDuration + 2000);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        overlay.classList.add('active');
+        if (prefersReducedMotion) {
+          overlay.style.opacity = '1';
+        }
+      });
+    });
 
     setTimeout(() => {
-      overlay.classList.add('active');
-    }, 1500);
-
-    setTimeout(() => {
-      if (msg) msg.hidden = true;
-      if (videoContainer) videoContainer.hidden = false;
-      if (iframe) {
-        iframe.src = 'https://www.youtube.com/embed/_WZCvQ5J3pk?autoplay=1&rel=0&controls=0&modestbranding=1';
+      if (msg) {
+        msg.classList.add('fade-out');
       }
+      if (videoContainer) {
+        videoContainer.classList.add('visible');
+      }
+      if (video) {
+        video.style.display = 'block';
+        video.style.opacity = '1';
+        video.currentTime = 0;
+        video.muted = false;
+        video.play().catch(() => {
+          video.muted = true;
+          video.play().then(() => {
+            if (btnWakeUp) {
+              btnWakeUp.textContent = '🔊 Ativar som';
+              btnWakeUp.style.display = 'block';
+            }
+          }).catch(err => {
+            console.error('Video play failed:', err);
+          });
+        });
+
+        video.onended = () => {
+          this.exitEasterEgg();
+        };
+      }
+
+      setTimeout(() => {
+        if (msg) msg.hidden = true;
+      }, prefersReducedMotion ? 0 : 800);
 
       let exitTimer = setTimeout(() => {
         this.showEasterEggExitButton(btnExit);
@@ -983,15 +1131,18 @@ class GameController {
 
       if (btnWakeUp) {
         const wakeUpHandler = () => {
-          if (iframe) {
-            iframe.src = 'https://www.youtube.com/embed/_WZCvQ5J3pk?autoplay=1&mute=0&rel=0&controls=0&modestbranding=1';
+          if (video) {
+            video.muted = false;
+            video.play().catch(() => {});
           }
           btnWakeUp.style.display = 'none';
         };
         btnWakeUp.onclick = wakeUpHandler;
         overlay.onclick = (e) => {
           if (e.target === overlay || e.target === videoContainer) {
-            wakeUpHandler();
+            if (video && video.muted) {
+              wakeUpHandler();
+            }
           }
         };
       }
@@ -1001,7 +1152,7 @@ class GameController {
           this.exitEasterEgg();
         };
       }
-    }, 1500 + fadeDuration);
+    }, fadeDuration);
   }
 
   showEasterEggExitButton(btnExit) {
@@ -1012,8 +1163,28 @@ class GameController {
 
   exitEasterEgg() {
     const overlay = document.getElementById('easterEggOverlay');
-    const iframe = document.getElementById('easterEggIframe');
-    if (iframe) iframe.src = '';
+    const video = document.getElementById('easterEggVideo');
+    const videoContainer = document.getElementById('easterEggVideoContainer');
+    const btnWakeUp = document.getElementById('btnWakeUp');
+    const msg = document.getElementById('easterEggMessage');
+
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+      video.style.display = 'none';
+      video.style.opacity = '0';
+    }
+    if (btnWakeUp) {
+      btnWakeUp.style.display = 'none';
+    }
+    if (videoContainer) {
+      videoContainer.classList.remove('visible');
+      videoContainer.hidden = true;
+    }
+    if (msg) {
+      msg.hidden = true;
+      msg.classList.remove('fade-out');
+    }
     if (overlay) {
       overlay.classList.remove('active');
       overlay.hidden = true;

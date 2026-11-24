@@ -871,6 +871,7 @@ class GameController {
       this.render();
       this.renderResult(false);
     });
+        this.initDoomEasterEgg();
     this.init();
   }
 
@@ -1022,6 +1023,45 @@ class GameController {
 
   handleCancelReset() {
     this.view.closeConfirmModal();
+  }
+
+    initDoomEasterEgg() {
+    this.doomOverlay = document.getElementById('doomOverlay');
+    const btnOpen = document.getElementById('btnSecretDoom');
+    const btnExit = document.getElementById('btnExitDoom');
+    if (!this.doomOverlay || !btnOpen || !btnExit) return;
+
+    btnOpen.addEventListener('click', () => this.openDoom());
+    btnExit.addEventListener('click', () => this.closeDoom());
+  }
+
+    openDoom() {
+    this.doomOverlay.hidden = false;
+    this.doomOverlay.setAttribute('aria-hidden', 'false');
+    this.startDoom();
+  }
+
+   closeDoom() {
+    document.getElementById('doomContainer').replaceChildren();
+    this.doomOverlay.hidden = true;
+    this.doomOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+    
+
+    startDoom() {
+    const container = document.getElementById('doomContainer');
+    if (container.querySelector('iframe')) return;
+
+    const frame = document.createElement('iframe');
+    frame.src = 'https://js-dos.com/games/doom.exe.html';
+    frame.title = 'DOOM';
+    frame.allow = 'fullscreen; autoplay';
+    frame.style.width = '100%';
+    frame.style.height = '100%';
+    frame.style.border = 'none';
+    frame.style.display = 'block';
+    container.replaceChildren(frame);
   }
 
   triggerEasterEgg() {

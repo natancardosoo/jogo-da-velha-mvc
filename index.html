@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Gloria+Hallelujah&family=Patrick+Hand&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
+
 </head>
 <body>
   <!-- Manchas sutis de poeira de giz (chalk dust smudges) na lousa -->
@@ -50,6 +51,7 @@
 
     <!-- Área Central da Aplicação -->
     <main class="game-container" id="gameApp" role="main">
+
       
       <!-- Linha Superior da Arena: Rodada e Placar como Tabela de Giz Riscada à Mão -->
       <div class="arena-header-bar">
@@ -204,12 +206,12 @@
     <!-- Canaleta de Giz e Apagador na Borda Inferior -->
     <div class="chalk-tray" aria-hidden="true">
       <button type="button" id="btnDebugSuddenDeath" class="debug-chalk-speck" title="Debug: Preparar empate Morte Súbita" tabindex="-1" aria-label="Debug: Preparar empate Morte Súbita"></button>
-      <div class="eraser">
+      <button type="button" id="btnSecretDoom" class="eraser secret-doom-trigger" tabindex="-1" aria-label="Apagador da lousa">
         <svg viewBox="0 0 60 25" width="55" height="22" fill="#5c3a21">
-          <rect x="2" y="2" width="56" height="21" rx="3" fill="#b08968" stroke="#3d2311" stroke-width="2"/>
-          <rect x="5" y="8" width="50" height="12" rx="2" fill="#2d2d2d" opacity="0.8"/>
+        <rect x="2" y="2" width="56" height="21" rx="3" fill="#b08968" stroke="#3d2311" stroke-width="2"/>
+        <rect x="5" y="8" width="50" height="12" rx="2" fill="#2d2d2d" opacity="0.8"/>
         </svg>
-      </div>
+      </button>
       <div class="chalk-pieces">
         <svg viewBox="0 0 30 12" width="28" height="12"><path d="M2 2 Q 15 0 28 3 L 26 10 Q 15 12 4 9 Z" fill="#ffe66d"/></svg>
         <svg viewBox="0 0 30 12" width="28" height="12"><path d="M2 2 Q 15 0 28 3 L 26 10 Q 15 12 4 9 Z" fill="#7bdff2"/></svg>
@@ -391,5 +393,16 @@
       <button type="button" id="btnExitEasterEgg" class="btn-easter-egg-exit" aria-label="Sair do easter egg e iniciar novo duelo">Voltar ao Duelo</button>
     </div>
   </div>
+
+  
+
+<!-- Tela Secreta do DOOM (Separada do Easter Egg de vídeo) -->
+<div id="doomOverlay" class="doom-overlay" hidden aria-hidden="true">
+  <div id="doomContainer" class="doom-container"></div>
+  <button type="button" id="btnExitDoom" class="btn-easter-egg-exit visible" aria-label="Fechar DOOM e voltar ao jogo">
+    Voltar ao Duelo
+  </button>
+</div>
+
 </body>
 </html>

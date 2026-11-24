@@ -6,9 +6,9 @@ Jogo local em HTML, CSS e JavaScript com arquitetura MVC. Abra `index.html` no n
 
 - **Breno Vargas Pereira** — RA: 823134327
 - **Sabrina Amorim** — RA: 82329546
-- **Natan Cardoso de Oliveira (Esculachado)** — RA: 823120309
+- **Natan Cardoso de Oliveira** — RA: 823120309
 - **Julia Freitas Santos** — RA: 823222304
-- **Gabriel Baldini (Scaralhone)** — RA: 823115970
+- **Gabriel Baldini Scatelone** — RA: 823115970
 - **Giovanni Lourenço Paschoim** — RA: 824215509
 
 ## Regras do duelo e de negócio

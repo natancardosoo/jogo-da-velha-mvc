@@ -2,15 +2,48 @@
 
 Jogo local em HTML, CSS e JavaScript com arquitetura MVC. Abra `index.html` no navegador, sem instalação ou servidor.
 
-## Regras do duelo
+## Integrantes
 
-- Modos: duas pessoas no mesmo dispositivo ou jogador contra bot.
+- **Breno Vargas Pereira** — RA: 823134327
+- **Sabrina Amorim** — RA: 82329546
+- **Natan Cardoso de Oliveira (Esculachado)** — RA: 823120309
+- **Julia Freitas Santos** — RA: 823222304
+- **Gabriel Baldini (Scaralhone)** — RA: 823115970
+- **Giovanni Lourenço Paschoim** — RA: 824215509
+
+## Regras do duelo e de negócio
+
+- Modos: duas pessoas no mesmo dispositivo (PvP) ou jogador contra bot. Não há contas, multiplayer online, comunicação entre dispositivos nem persistência após recarregar a página.
 - Cada participante começa com três vidas. Uma derrota desenha a cabeça; a segunda acrescenta o tronco e os dois braços; a terceira acrescenta as pernas e encerra o duelo.
-- Empates não retiram vidas. O participante que começa alterna a cada rodada, inclusive após empates.
-- **Próxima rodada** preserva vidas e placar e só fica disponível ao terminar a rodada.
-- **Jogar revanche** reinicia o duelo após o resultado final. **Novo duelo** permite recomeçar mediante confirmação.
-- Trocar modo ou dificuldade reinicia o duelo. Não há contas, multiplayer online ou persistência após recarregar a página.
+- Empates não retiram vidas e somam ao contador de empates (`EMP`). O participante que começa alterna a cada rodada, inclusive após empates. No modo contra o bot, o bot joga com `O` e inicia as rodadas pares.
+- **Próxima rodada** preserva vidas e placar e só fica disponível ao terminar a rodada (antes do fim do duelo).
+- **Jogar revanche** reinicia o duelo após o resultado final (zerando vidas e placar e voltando para a rodada 1 com `X`). **Novo duelo** permite recomeçar mediante confirmação, mantendo nomes, modo e dificuldade.
+- Trocar modo ou dificuldade reinicia o duelo diretamente. Alterar nomes não reinicia a partida.
+- Nomes humanos aceitam até 24 caracteres (com fallback para `Jogador X` ou `Jogador O` quando vazios ou apenas com espaços) e o computador mantém `Bot` no modo contra bot.
 - Bot fácil: aleatório; médio (padrão): 50% aleatório e 50% Minimax por jogada; difícil: Minimax.
+
+## Requisitos Funcionais (RF)
+
+- **RF01:** Exibir tabuleiro 3 por 3 e aceitar jogadas em casas vazias no turno correto.
+- **RF02:** Detectar vitória nas oito combinações possíveis e empate sem combinação vencedora.
+- **RF03:** Selecionar dois jogadores locais ou jogador contra bot, reiniciando o duelo ao trocar o modo.
+- **RF04:** Oferecer Fácil, Médio e Difícil para o bot, reiniciando o duelo ao trocar a dificuldade.
+- **RF05:** Permitir nomes humanos de até 24 caracteres e manter `Bot` como nome do computador.
+- **RF06:** Exibir duas forcas, vidas individuais, rodada, placar e mensagens de turno e resultado.
+- **RF07:** Liberar **Próxima rodada** após vitória ou empate, preservando vidas e placar.
+- **RF08:** Encerrar o duelo na terceira derrota e oferecer **Jogar revanche**.
+- **RF09:** Oferecer **Novo duelo** com confirmação e reinicializar vidas, placar, rodada e tabuleiro.
+- **RF10:** Rejeitar casas ocupadas, índices inválidos e jogadas após o resultado, cancelando jogadas pendentes do bot ao reiniciar ou trocar configurações.
+
+## Requisitos Não Funcionais (RNF)
+
+- **RNF01 (Responsividade):** Layout fluido e responsivo sem quebra ou rolagem horizontal indesejada.
+- **RNF02 (Compatibilidade):** HTML5, CSS3 e JavaScript puro compatíveis com navegadores modernos e hospedagem estática.
+- **RNF03 (Desempenho e Controle de Turno):** Execução local ágil com agendamento do bot e cancelamento seguro de temporizadores pendentes.
+- **RNF04 (Usabilidade):** Identificação visual clara de turnos, placar, vidas, forca e feedback de ações.
+- **RNF05 (Acessibilidade):** Elementos semânticos, foco visível, navegação por teclado e anúncios de status via `role="status"` e `aria-live`.
+- **RNF06 (Manutenibilidade e Testabilidade):** Separação clara entre `GameModel`, `GameView` e `GameController` e testes automatizados via `node --test`.
+- **RNF07 (Segurança na Saída Textual e Execução Offline):** Uso de `textContent` para nomes e mensagens (sem `innerHTML` ou `eval`) e funcionamento local sem exigir backend ou CDN.
 
 ## Organização e validação
 
@@ -56,7 +89,7 @@ git init
 git add .
 git commit -m "feat: implementacao completa do Jogo da Velha MVC conforme especificacao"
 git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/jogo-da-velha-mvc.git
+git remote add origin [https://github.com/SEU_USUARIO/jogo-da-velha-mvc.git](https://github.com/SEU_USUARIO/jogo-da-velha-mvc.git)
 git push -u origin main
 ```
 
